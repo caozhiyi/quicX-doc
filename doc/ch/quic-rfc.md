@@ -30,10 +30,30 @@ QUICµ×²ãÊ¹ÓÃUDPÒÔ±ÜÃâ¿Í»§¶Ë²Ù×÷ÏµÍ³ºÍÍ¨ÐÅÖÐ¼äÉè±¸µÄ¸Ä¶¯¡£QUICÈÏÖ¤ËùÓÐµÄÍ·²¿ÐÅÏ¢£
   - µÚ3½ÚÌá¹©Á÷×´Ì¬µÄ²Î¿¼Ä£ÐÍ
   - µÚ4½Ú¸ÅÊöÁËÁ÷Á¿¿ØÖÆµÄ²Ù×÷
 + Á¬½ÓÊÇQUIC¶ËµãÍ¨ÐÅ¹ý³ÌÖÐµÄÊµÌå
-  - µÚ5½ÚÃèÊöÁËÁ¬½ÓÏà¹ØµÄºËÐÄ¸ÅÄî
-  - µÚ6½ÚÃèÊöÁË°æ±¾Ð­ÉÌ¹ý³Ì
-  - µÚ7½ÚÊÇ¹ØÓÚÁ¬½Ó½¨Á¢¹ý³ÌµÄÏ¸½Ú
-  - µÚ8½ÚÖ¸µã¹Ø¼üµÄ·þÎñ¾Ü¾ø»·½Ú»úÖÆ
-  - µÚ9¾ÍÃèÊöÁË¶ËµãÈçºÎ½«Á¬½ÓÇ¨ÒÆµ½ÁíÒ»¸öÐÂµÄÍøÂç»·¾³ÖÐ
-  - µÚ10½ÚÁÐ³öÁËÖÐ¶ÏÁ¬½ÓÊ±µÄËùÓÐÑ¡Ïî
-  - µÚ11½ÚÌá¹©¶Ô´íÎó´¦ÀíµÄÒ»°ãÖ¸µ¼
+  - µÚ5½ÚÃèÊöÁËÁ¬½ÓÏà¹ØµÄºËÐÄ¸ÅÄî   
+  - µÚ6½ÚÃèÊöÁË°æ±¾Ð­ÉÌ¹ý³Ì   
+  - µÚ7½ÚÊÇ¹ØÓÚÁ¬½Ó½¨Á¢¹ý³ÌµÄÏ¸½Ú   
+  - µÚ8½ÚÖ¸µã¹Ø¼üµÄ·þÎñ¾Ü¾ø»·½Ú»úÖÆ   
+  - µÚ9¾ÍÃèÊöÁË¶ËµãÈçºÎ½«Á¬½ÓÇ¨ÒÆµ½ÁíÒ»¸öÐÂµÄÍøÂç»·¾³ÖÐ   
+  - µÚ10½ÚÁÐ³öÁËÖÐ¶ÏÁ¬½ÓÊ±µÄËùÓÐÑ¡Ïî   
+  - µÚ11½ÚÌá¹©¶Ô´íÎó´¦ÀíµÄÒ»°ãÖ¸µ¼   
++ °üºÍÖ¡ÊÇQUICÍ¨ÐÅµÄ»ù±¾µ¥Ôª
+  - µÚ12½ÚÃèÊöÁË¹ØÓÚ°üºÍÖ¡µÄ¹Ø¼ü¸ÅÄî   
+  - µÚ13½Ú¶¨ÒåÁË´«Êä£¬ÖØ´«ºÍÈ·ÈÏµÄÄ£ÐÍ   
+  - µÚ14½Ú¶¨ÒåÁË°ü´óÐ¡¹ÜÀíµÄ¹æÔò   
++ ×îºó£¬Õ¹Ê¾ÁËÒ»Ð©QUIC±àÂëµÄÏ¸½Ú
+  - µÚ15½Ú °æ±¾   
+  - µÚ16½Ú ÕûÐÍ±àÂë   
+  - µÚ17½Ú °üÍ·   
+  - µÚ18½Ú ´«Êä²ÎÊý   
+  - µÚ19½Ú ´«ÊäÖ¡   
+  - µÚ20ÕÂ ´íÎó¶¨Òå    
+¸½Â¼ÎÄ¼þÃèÊöÁË±¾ÎÄÎ´¾¡µÄÒ»Ð©QUICÏ¸½Ú£¬°üÀ¨[ÓµÈû¿ØÖÆ](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)£¬ÒÔ¼°[QUIC-TLS](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)¡£   
+
+## 1.2 ÊõÓïºÍ¶¨Òå
+´óÐ´¹Ø¼ü×Ö "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT","SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", ¡°OPTIONAL¡±µÄÊ¹ÓÃÓëBCP14 [RFC2119] [RFC8174]ÏàÍ¬¡£   
+±¾ÎÄ³£ÓÃµÄÊõÓï¶¨ÒåÈçÏÂ£º    
+QUIC£º±¾ÎÄÃèÊöµÄ´«ÊäÐ­Òé£¬QUICÖ»ÊÇÒ»¸öÃû×Ö£¬¶ø²»ÊÇÒ»¸öËõÂÔ´Ê¡£    
+QUIC°ü£ºQUIC¿ÉÒÔ·â×°½øUDPÊý¾Ý°üµÄÍêÕû´¦Àíµ¥Ôª£¬¶à¸öQUIC°ü¿ÉÒÔ±»·Åµ½Ò»¸öUDPÊý¾Ý°üÖÐ¡£   
+ACKÒý·¢°ü£º³ýÁËACK£¬PADDING£¬CONNECTINGÍâ£¬ÆäËû°ü¶¼°üº¬µÄÒ»ÖÖQUIC°ü£¬ËüÊ¹µÃ½ÓÊÜ·½·¢ËÍ½ÓÊÜÈ·ÈÏ¡£    
+ÂÒÐò°ü£ºÒ»ÖÖÊý¾Ý°ü£¬ËüµÄ±àºÅ²¢²»ÊÇ½ÓÊÜ·½×î´ó±àºÅ¼ÓÒ»£¬µ±°ü´«ÊäÑÓ³Ù»òÕß¸Ã°üÖ®Ç°µÄ°üÑÓ³Ù»ò¶ªÊ§£¬¶¼¿ÉÄÜÔì³É°üµÄÂÒÐòµ½´ï¡£
