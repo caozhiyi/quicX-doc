@@ -51,7 +51,7 @@ QUICµ×²ãÊ¹ÓÃUDPÒÔ±ÜÃâ¿Í»§¶Ë²Ù×÷ÏµÍ³ºÍÍ¨ÐÅÖÐ¼äÉè±¸µÄ¸Ä¶¯¡£QUICÈÏÖ¤ËùÓÐµÄÍ·²¿ÐÅÏ¢£
 ¸½Â¼ÎÄ¼þÃèÊöÁË±¾ÎÄÎ´¾¡µÄÒ»Ð©QUICÏ¸½Ú£¬°üÀ¨[ÓµÈû¿ØÖÆ](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)£¬ÒÔ¼°[QUIC-TLS](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)¡£   
 
 ## 1.2 ÊõÓïºÍ¶¨Òå
-¹Ø¼ü×Ö "**Ò»¶¨**", "**½ûÖ¹**", "**ÒªÇó**", "**Ó¦¸Ã**", "**²»Ó¦**", "**ÍÆ¼ö**", "**²»ÍÆ¼ö**", "**¿ÉÒÔ**", "**¿ÉÑ¡**"µÄÊ¹ÓÃÓëBCP14 [RFC2119] [RFC8174]ÏàÍ¬¡£   
+¹Ø¼ü×Ö "**Ò»¶¨**", "**½ûÖ¹**", "**ÒªÇó**", "**Ó¦¸Ã**", "**²»Ó¦**", "**ÍÆ¼ö**", "**²»ÍÆ¼ö**", "**¿ÉÒÔ**", "**¿ÉÑ¡**"µÄÊ¹ÓÃÓë[BCP14](https://tools.ietf.org/html/bcp14) [RFC2119](https://tools.ietf.org/html/rfc2119) [RFC8174](https://tools.ietf.org/html/rfc8174)ÏàÍ¬¡£   
 ±¾ÎÄ³£ÓÃµÄÊõÓï¶¨ÒåÈçÏÂ£º    
 QUIC£º±¾ÎÄÃèÊöµÄ´«ÊäÐ­Òé£¬QUICÖ»ÊÇÒ»¸öÃû×Ö£¬¶ø²»ÊÇÒ»¸öËõÂÔ´Ê¡£    
 QUIC°ü£ºQUIC¿ÉÒÔ·â×°½øUDPÊý¾Ý°üµÄÍêÕû´¦Àíµ¥Ôª£¬¶à¸öQUIC°ü¿ÉÒÔ±»·Åµ½Ò»¸öUDPÊý¾Ý°üÖÐ¡£   
@@ -66,7 +66,7 @@ Stream£ºÔÚQUICÁ¬½ÓÖ®ÉÏ£¬´«ÊäÓÐÐòÊý¾ÝµÄµ¥Ïò»òË«ÏòÍ¨µÀ£¬Ò»¸öQUICÁ¬½Ó¿ÉÒÔÍ¬Ê±Ð¯´ø¶à
 Ó¦ÓÃ£ºÊ¹ÓÃQUIC·¢ËÍºÍ½ÓÊÕÊý¾ÝµÄÊµÌå¡£   
    
 ## 1.3 ·ûºÅÔ¼¶¨   
-±¾ÎÄÊ¹ÓÃµÄ°üºÍÖ¡µÄ¸ñÊ½¶¨ÒåÀàËÆSection 3.1 of [RFC2360]£¬Ô¼¶¨ÈçÏÂ£º   
+±¾ÎÄÊ¹ÓÃµÄ°üºÍÖ¡µÄ¸ñÊ½¶¨ÒåÀàËÆSection 3.1 of [RFC2360](https://tools.ietf.org/html/rfc2360#section-3.1)£¬Ô¼¶¨ÈçÏÂ£º   
 [x]£º±íÊ¾xÊÇ¿ÉÑ¡µÄ   
 x (A): ±íÊ¾x³¤¶ÈÎªA bits   
 x (A/B/C): ±íÊ¾xµÄ³¤¶ÈÎªA£¬B»òC bits   
@@ -84,12 +84,12 @@ Streams¿ÉÒÔÊÇµ¥Ïò»òË«ÏòµÄ£¬µ¥ÏòµÄStreamsÖ»ÄÜÍùÒ»¸ö·½Ïò·¢ËÍÊý¾Ý£º´ÓStreamµÄ·¢Æð·½
 Stream IDµÄ×îºóÒ»¸öbitÎ»ÓÃÀ´±êÊ¶·¢Æð·½£¬¿Í»§¶Ë·¢ÆðµÄStream£¬ÉèÖÃÎª0£¬·þÎñÆ÷·¢ÆðµÄStream£¬ÉèÖÃÎª1¡£   
 Stream IDµÄµ¹ÊýµÚ¶þ¸öbitÎ»ÓÃÀ´±êÊ¶StreamÊý¾Ý·¢ËÍ·½Ïò£¬Ë«ÏòÊ±Îª0£¬µ¥ÏòÊ±Îª1¡£   
 Stream ID×îºóÁ½Î»µÄbit×éºÏ¹²ÓÐËÄÖÖÀàÐÍ£¬¶¨ÒåÈçÏÂ£º   
-                      | Bits | Stream Type      |
-                      | :--: | :--------------: |
-                      | 0x0  | ¿Í»§¶Ë·¢Æð, Ë«Ïò |
-                      | 0x1  | ·þÎñ¶Ë·¢Æð, Ë«Ïò |
-                      | 0x2  | ¿Í»§¶Ë·¢Æð, µ¥Ïò |
-                      | 0x3  | ¿Í»§¶Ë·¢Æð, Ë«Ïò |
+| Bits | Stream Type      |
+| :--: | :--------------: |
+| 0x0  | ¿Í»§¶Ë·¢Æð, Ë«Ïò |
+| 0x1  | ·þÎñ¶Ë·¢Æð, Ë«Ïò |
+| 0x2  | ¿Í»§¶Ë·¢Æð, µ¥Ïò |
+| 0x3  | ¿Í»§¶Ë·¢Æð, Ë«Ïò |
    
 ÔÚÃ¿ÖÖÀàÐÍÖÐ£¬Stream ID¶¼ÊÇµÝÔö´´½¨µÄ£¬ÎÞÐòÊ¹ÓÃµÄÁ÷ID»áµ¼ÖÂ¸ÃÀàÐÍµÄËùÓÐÁ÷Í¬Ê±´ò¿ª±àºÅ½ÏµÍµÄÁ÷ID(´æÒÉ)¡£    
 ¿Í»§¶Ë´ò¿ªµÄµÚÒ»¸öË«ÏòÁ÷µÄÁ÷IDÎª0¡£     
