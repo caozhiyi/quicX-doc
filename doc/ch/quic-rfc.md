@@ -85,11 +85,12 @@ Stream IDµÄ×îºóÒ»¸öbitÎ»ÓÃÀ´±êÊ¶·¢Æð·½£¬¿Í»§¶Ë·¢ÆðµÄStream£¬ÉèÖÃÎª0£¬·þÎñÆ÷·¢Æðµ
 Stream IDµÄµ¹ÊýµÚ¶þ¸öbitÎ»ÓÃÀ´±êÊ¶StreamÊý¾Ý·¢ËÍ·½Ïò£¬Ë«ÏòÊ±Îª0£¬µ¥ÏòÊ±Îª1¡£   
 Stream ID×îºóÁ½Î»µÄbit×éºÏ¹²ÓÐËÄÖÖÀàÐÍ£¬¶¨ÒåÈçÏÂ£º   
 | Bits | Stream Type      |
-| ---- | ---------------- |
+| :--: | :--------------: |
 | 0x0  | ¿Í»§¶Ë·¢Æð, Ë«Ïò |
 | 0x1  | ·þÎñ¶Ë·¢Æð, Ë«Ïò |
 | 0x2  | ¿Í»§¶Ë·¢Æð, µ¥Ïò |
 | 0x3  | ¿Í»§¶Ë·¢Æð, Ë«Ïò |
+   
 ÔÚÃ¿ÖÖÀàÐÍÖÐ£¬Stream ID¶¼ÊÇµÝÔö´´½¨µÄ£¬ÎÞÐòÊ¹ÓÃµÄÁ÷ID»áµ¼ÖÂ¸ÃÀàÐÍµÄËùÓÐÁ÷Í¬Ê±´ò¿ª±àºÅ½ÏµÍµÄÁ÷ID(´æÒÉ)¡£    
 ¿Í»§¶Ë´ò¿ªµÄµÚÒ»¸öË«ÏòÁ÷µÄÁ÷IDÎª0¡£     
     
