@@ -26,34 +26,101 @@ QUICµ×²ãÊ¹ÓÃUDPÒÔ±ÜÃâ¿Í»§¶Ë²Ù×÷ÏµÍ³ºÍÍ¨ÐÅÖÐ¼äÉè±¸µÄ¸Ä¶¯¡£QUICÈÏÖ¤ËùÓÐµÄÍ·²¿ÐÅÏ¢£
 ### 1.1ÎÄµµ½á¹¹
 ±¾ÎÄÃèÊöÁËQUICÐ­ÒéµÄºËÐÄ²¿·Ö£¬±¾ÎÄ½á¹¹ÈçÏÂ£º   
 + StreamÊÇQUICÌá¹©µÄ»ù´¡·þÎñ³éÏó
-  - µÚ2½ÚÃèÊöÓëStreamÏà¹ØµÄºËÐÄ¸ÅÄî
-  - µÚ3½ÚÌá¹©Á÷×´Ì¬µÄ²Î¿¼Ä£ÐÍ
-  - µÚ4½Ú¸ÅÊöÁËÁ÷Á¿¿ØÖÆµÄ²Ù×÷
+  - µÚ2ÕÂ ÃèÊöÓëStreamÏà¹ØµÄºËÐÄ¸ÅÄî
+  - µÚ3ÕÂ Ìá¹©Á÷×´Ì¬µÄ²Î¿¼Ä£ÐÍ
+  - µÚ4ÕÂ ¸ÅÊöÁËÁ÷Á¿¿ØÖÆµÄ²Ù×÷
 + Á¬½ÓÊÇQUIC¶ËµãÍ¨ÐÅ¹ý³ÌÖÐµÄÊµÌå
-  - µÚ5½ÚÃèÊöÁËÁ¬½ÓÏà¹ØµÄºËÐÄ¸ÅÄî   
-  - µÚ6½ÚÃèÊöÁË°æ±¾Ð­ÉÌ¹ý³Ì   
-  - µÚ7½ÚÊÇ¹ØÓÚÁ¬½Ó½¨Á¢¹ý³ÌµÄÏ¸½Ú   
-  - µÚ8½ÚÖ¸µã¹Ø¼üµÄ·þÎñ¾Ü¾ø»·½Ú»úÖÆ   
-  - µÚ9¾ÍÃèÊöÁË¶ËµãÈçºÎ½«Á¬½ÓÇ¨ÒÆµ½ÁíÒ»¸öÐÂµÄÍøÂç»·¾³ÖÐ   
-  - µÚ10½ÚÁÐ³öÁËÖÐ¶ÏÁ¬½ÓÊ±µÄËùÓÐÑ¡Ïî   
-  - µÚ11½ÚÌá¹©¶Ô´íÎó´¦ÀíµÄÒ»°ãÖ¸µ¼   
+  - µÚ5ÕÂ ÃèÊöÁËÁ¬½ÓÏà¹ØµÄºËÐÄ¸ÅÄî   
+  - µÚ6ÕÂ ÃèÊöÁË°æ±¾Ð­ÉÌ¹ý³Ì   
+  - µÚ7ÕÂ ÊÇ¹ØÓÚÁ¬½Ó½¨Á¢¹ý³ÌµÄÏ¸½Ú   
+  - µÚ8ÕÂ Ö¸µã¹Ø¼üµÄ·þÎñ¾Ü¾ø»·½Ú»úÖÆ   
+  - µÚ9ÕÂ ÃèÊöÁË¶ËµãÈçºÎ½«Á¬½ÓÇ¨ÒÆµ½ÁíÒ»¸öÐÂµÄÍøÂç»·¾³ÖÐ   
+  - µÚ10ÕÂ ÁÐ³öÁËÖÐ¶ÏÁ¬½ÓÊ±µÄËùÓÐÑ¡Ïî   
+  - µÚ11ÕÂ Ìá¹©¶Ô´íÎó´¦ÀíµÄÒ»°ãÖ¸µ¼   
 + °üºÍÖ¡ÊÇQUICÍ¨ÐÅµÄ»ù±¾µ¥Ôª
-  - µÚ12½ÚÃèÊöÁË¹ØÓÚ°üºÍÖ¡µÄ¹Ø¼ü¸ÅÄî   
-  - µÚ13½Ú¶¨ÒåÁË´«Êä£¬ÖØ´«ºÍÈ·ÈÏµÄÄ£ÐÍ   
-  - µÚ14½Ú¶¨ÒåÁË°ü´óÐ¡¹ÜÀíµÄ¹æÔò   
+  - µÚ12ÕÂ ÃèÊöÁË¹ØÓÚ°üºÍÖ¡µÄ¹Ø¼ü¸ÅÄî   
+  - µÚ13ÕÂ ¶¨ÒåÁË´«Êä£¬ÖØ´«ºÍÈ·ÈÏµÄÄ£ÐÍ   
+  - µÚ14ÕÂ ¶¨ÒåÁË°ü´óÐ¡¹ÜÀíµÄ¹æÔò   
 + ×îºó£¬Õ¹Ê¾ÁËÒ»Ð©QUIC±àÂëµÄÏ¸½Ú
-  - µÚ15½Ú °æ±¾   
-  - µÚ16½Ú ÕûÐÍ±àÂë   
-  - µÚ17½Ú °üÍ·   
-  - µÚ18½Ú ´«Êä²ÎÊý   
-  - µÚ19½Ú ´«ÊäÖ¡   
+  - µÚ15ÕÂ °æ±¾   
+  - µÚ16ÕÂ ÕûÐÍ±àÂë   
+  - µÚ17ÕÂ °üÍ·   
+  - µÚ18ÕÂ ´«Êä²ÎÊý   
+  - µÚ19ÕÂ ´«ÊäÖ¡   
   - µÚ20ÕÂ ´íÎó¶¨Òå    
 ¸½Â¼ÎÄ¼þÃèÊöÁË±¾ÎÄÎ´¾¡µÄÒ»Ð©QUICÏ¸½Ú£¬°üÀ¨[ÓµÈû¿ØÖÆ](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)£¬ÒÔ¼°[QUIC-TLS](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)¡£   
 
 ## 1.2 ÊõÓïºÍ¶¨Òå
-´óÐ´¹Ø¼ü×Ö "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT","SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", ¡°OPTIONAL¡±µÄÊ¹ÓÃÓëBCP14 [RFC2119] [RFC8174]ÏàÍ¬¡£   
+¹Ø¼ü×Ö "**Ò»¶¨**", "**½ûÖ¹**", "**ÒªÇó**", "**Ó¦¸Ã**", "**²»Ó¦**", "**ÍÆ¼ö**", "**²»ÍÆ¼ö**", "**¿ÉÒÔ**", "**¿ÉÑ¡**"µÄÊ¹ÓÃÓëBCP14 [RFC2119] [RFC8174]ÏàÍ¬¡£   
 ±¾ÎÄ³£ÓÃµÄÊõÓï¶¨ÒåÈçÏÂ£º    
 QUIC£º±¾ÎÄÃèÊöµÄ´«ÊäÐ­Òé£¬QUICÖ»ÊÇÒ»¸öÃû×Ö£¬¶ø²»ÊÇÒ»¸öËõÂÔ´Ê¡£    
 QUIC°ü£ºQUIC¿ÉÒÔ·â×°½øUDPÊý¾Ý°üµÄÍêÕû´¦Àíµ¥Ôª£¬¶à¸öQUIC°ü¿ÉÒÔ±»·Åµ½Ò»¸öUDPÊý¾Ý°üÖÐ¡£   
 ACKÒý·¢°ü£º³ýÁËACK£¬PADDING£¬CONNECTINGÍâ£¬ÆäËû°ü¶¼°üº¬µÄÒ»ÖÖQUIC°ü£¬ËüÊ¹µÃ½ÓÊÜ·½·¢ËÍ½ÓÊÜÈ·ÈÏ¡£    
-ÂÒÐò°ü£ºÒ»ÖÖÊý¾Ý°ü£¬ËüµÄ±àºÅ²¢²»ÊÇ½ÓÊÜ·½×î´ó±àºÅ¼ÓÒ»£¬µ±°ü´«ÊäÑÓ³Ù»òÕß¸Ã°üÖ®Ç°µÄ°üÑÓ³Ù»ò¶ªÊ§£¬¶¼¿ÉÄÜÔì³É°üµÄÂÒÐòµ½´ï¡£
+ÂÒÐò°ü£ºÒ»ÖÖÊý¾Ý°ü£¬ËüµÄ±àºÅ²¢²»ÊÇ½ÓÊÜ·½×î´ó±àºÅ¼ÓÒ»£¬µ±°ü´«ÊäÑÓ³Ù»òÕß¸Ã°üÖ®Ç°µÄ°üÑÓ³Ù»ò¶ªÊ§£¬¶¼¿ÉÄÜÔì³É°üµÄÂÒÐòµ½´ï¡£   
+Endpoint£ºQUICÁ¬½ÓÖÐÉú³É£¬½ÓÊÕ£¬´¦ÀíQUIC°üµÄÊµÌå¡£QUICÖÐÖ»ÓÐ¿Í»§¶ËºÍ·þÎñÆ÷Á½ÖÖEndpoint¡£
+¿Í»§¶Ë£ºÖ÷¶¯½¨Á¢Á¬½ÓµÄEndpoint¡£    
+·þÎñÆ÷£º½ÓÊÕÁ¬½ÓÇëÇóµÄEndpoint¡£     
+Address£ºip°æ±¾£¬ip µØÖ·£¬UDPÐ­Òé£¬ºÍUDP¶Ë¿ÚµÄÔª×é´ú±íÁËÍøÂçÍ¨ÐÅµÄÒ»¸öÖØ¶Ë¡£    
+Á¬½ÓID£ºÔÚEndPointÖÐÓÃÒ»¸öÎ¨Ò»µÄIDÀ´±êÊ¶Ò»¸öÁ¬½Ó£¬Ã¿¸öEndPoint·¢ËÍ°üµ½¶Ô¶ËµÄÊ±ºò¶¼»á½«Õâ¸öÖµÐ´Èë°üÄÚ¡£   
+Stream£ºÔÚQUICÁ¬½ÓÖ®ÉÏ£¬´«ÊäÓÐÐòÊý¾ÝµÄµ¥Ïò»òË«ÏòÍ¨µÀ£¬Ò»¸öQUICÁ¬½Ó¿ÉÒÔÍ¬Ê±Ð¯´ø¶à¸öStream¡£   
+Ó¦ÓÃ£ºÊ¹ÓÃQUIC·¢ËÍºÍ½ÓÊÕÊý¾ÝµÄÊµÌå¡£   
+   
+## 1.3 ·ûºÅÔ¼¶¨   
+±¾ÎÄÊ¹ÓÃµÄ°üºÍÖ¡µÄ¸ñÊ½¶¨ÒåÀàËÆSection 3.1 of [RFC2360]£¬Ô¼¶¨ÈçÏÂ£º   
+[x]£º±íÊ¾xÊÇ¿ÉÑ¡µÄ   
+x (A): ±íÊ¾x³¤¶ÈÎªA bits   
+x (A/B/C): ±íÊ¾xµÄ³¤¶ÈÎªA£¬B»òC bits   
+x (i)¡­£º±íÊ¾xÊ¹ÓÃ±ä³¤±àÂë   
+x (*): ±íÊ¾xÊÇ±ä³¤µÄ   
+
+## 2 Streams   
+Streams ÊÇQUICÌá¹©¸øÓ¦ÓÃµÄÇáÁ¿¼¶ÓÐÐòÊý¾Ý´«ÊäµÄ¹¦ÄÜ³éÏó¡£Streams¿ÉÒÔÊÇµ¥ÏòµÄÒ²¿ÉÒÔÊÇË«ÏòµÄ£¬QUICµ¥ÏòÁ÷µÄÁíÒ»ÖÖ¹ÛµãÊÇ¼¸ºõÎÞÏÞ³¤µÄ¡°ÏûÏ¢¡±³éÏó¡£   
+Streams¿ÉÒÔ±»´´½¨ÓÃÀ´·¢ËÍÊý¾Ý£¬ÓëStreams¹ÜÀíÏà¹ØµÄÆäËû¹ý³Ì(½áÊø£¬È¡Ïû£¬¹ÜÀíÁ÷¿Ø)£¬¶¼ÊÇÎªÁËÊ©¼Ó×îÐ¡µÄ¿ªÏú¶øÉè¼ÆµÄ¡£±ÈÈç£¬Ò»¸öStreamÖ¡¿ÉÒÔ´´½¨£¬¹Ø±ÕStreams»òÕßÐ¯´øÊý¾Ý¡£StreamsÒ²¿ÉÒÔÊÇ³¤´æµÄ£¬Ö±µ½QUICÁ¬½Ó½áÊø¡£   
+Steams¿ÉÒÔ±»ÈÎÒâÒ»¶ËEndPoint´´½¨£¬¿ÉÒÔ½»Ìæ×ÅºÍÆäËûStreamsÒ»Æð·¢ËÍÊý¾Ý£¬Ò²¿ÉÒÔ±»È¡Ïû¡£QUICÃ»ÓÐÌá¹©ÈÎºÎÊµ¼ÊµÄ»úÖÆÀ´±£Ö¤²»Í¬StreamsµÄÊý¾Ý´«ÊäÓÐÐò¡£²»Í¬Streams¼äµÄÊý¾ÝÊÇÂÒÐò´«ÊäµÄ¡£   
+QUICÔÊÐí²Ù×÷ÈÎÒâÊýÁ¿µÄStreams£¬ÔÚÈÎÒâÒ»¸öStreamsÉÏ·¢ËÍÈÎÒâÊýÁ¿µÄÊý¾Ý£¬ÕâÈ¡¾öÓÚÁ÷¿ØºÍÁ÷Á¿ÏÞÖÆ¡£   
+## 2.1 SteamµÄÀàÐÍºÍID
+Streams¿ÉÒÔÊÇµ¥Ïò»òË«ÏòµÄ£¬µ¥ÏòµÄStreamsÖ»ÄÜÍùÒ»¸ö·½Ïò·¢ËÍÊý¾Ý£º´ÓStreamµÄ·¢Æð·½µ½¶Ô¶Ë¡£Ë«ÏòµÄStream¿ÉÒÔÔÚÁ½¸ö·½ÏòÉÏ·¢ËÍÊý¾Ý¡£   
+ÔÚÒ»¸öÁ¬½ÓÄÚ£¬Ò»¸öÊý×ÖÖµ×÷ÎªStream IDÀ´±êÊ¶Ò»¸öStream£¬Stream IDÊÇÒ»¸ö62Bit³¤¶ÈµÄÕûÊý£¬ËüÔÚÒ»¸öÁ¬½ÓÄÚÊÇ¶ÀÌØÎ¨Ò»µÄ¡£Stream ID°´ÕÕ±ä³¤ÕûÊý½øÐÐ±àÂë£¬QUIC EndPoint **½ûÖ¹**ÔÚÒ»¸öÁ¬½ÓÄÚ¸´ÓÃ Stream ID¡£   
+Stream IDµÄ×îºóÒ»¸öbitÎ»ÓÃÀ´±êÊ¶·¢Æð·½£¬¿Í»§¶Ë·¢ÆðµÄStream£¬ÉèÖÃÎª0£¬·þÎñÆ÷·¢ÆðµÄStream£¬ÉèÖÃÎª1¡£   
+Stream IDµÄµ¹ÊýµÚ¶þ¸öbitÎ»ÓÃÀ´±êÊ¶StreamÊý¾Ý·¢ËÍ·½Ïò£¬Ë«ÏòÊ±Îª0£¬µ¥ÏòÊ±Îª1¡£   
+Stream ID×îºóÁ½Î»µÄbit×éºÏ¹²ÓÐËÄÖÖÀàÐÍ£¬¶¨ÒåÈçÏÂ£º   
+                +------+----------------------------------+
+                | Bits | Stream Type                      |
+                +======+==================================+
+                | 0x0  | ¿Í»§¶Ë·¢Æð, Ë«Ïò                 |
+                +------+----------------------------------+
+                | 0x1  | ·þÎñ¶Ë·¢Æð, Ë«Ïò                 |
+                +------+----------------------------------+
+                | 0x2  | ¿Í»§¶Ë·¢Æð, µ¥Ïò                 |
+                +------+----------------------------------+
+                | 0x3  | ¿Í»§¶Ë·¢Æð, Ë«Ïò                 |
+                +------+----------------------------------+  
+ÔÚÃ¿ÖÖÀàÐÍÖÐ£¬Stream ID¶¼ÊÇµÝÔö´´½¨µÄ£¬ÎÞÐòÊ¹ÓÃµÄÁ÷ID»áµ¼ÖÂ¸ÃÀàÐÍµÄËùÓÐÁ÷Í¬Ê±´ò¿ª±àºÅ½ÏµÍµÄÁ÷ID(´æÒÉ)¡£    
+¿Í»§¶Ë´ò¿ªµÄµÚÒ»¸öË«ÏòÁ÷µÄÁ÷IDÎª0¡£     
+    
+## 2.2 ·¢ËÍºÍ½ÓÊÕÊý¾Ý    
+StreamÖ¡·â×°Ó¦ÓÃ·¢ËÍµÄÊý¾Ý£¬Ò»¸öEndPointÊ¹ÓÃStream IDºÍÆ«ÒÆÁ¿×Ö¶ÎÀ´Ê±Êý¾ÝÓÐÐò¡£    
+EndPointÒ»¶¨±£Ö¤½«Stream Êý¾ÝÓÐÐòµÄ´«Êä¸øÉÏ²ãÓ¦ÓÃ£¬Õâ¾ÍÐèÒªEndPoint»º´æÎÞÐòµ½´ïµÄÊý¾Ý£¬Ö±µ½Á÷Á¿¿ØÖÆµÄÉÏÏÞ¡£     
+QUIC¶ÔStreamÂÒÐò´«ÊäµÄÊý¾Ý²¢Ã»ÓÐÌØ±ðµÄ¿¼ÂÇ£¬µ«ÊÇ£¬ÔÚÊµÏÖÉÏÒ²¿ÉÒÔ½«ÂÒÐòµÄÊý¾ÝÍ¸´«¸øÉÏ²ãÓ¦ÓÃ¡£   
+Ò»¸öEndPoint¿ÉÄÜ»áÔÚÒ»¸öStreamÉÏ½ÓÊÜµ½¶à´ÎÏàÍ¬Æ«ÒÆµÄÊý¾Ý£¬ÆäÖÐÒ»Ð©ÔçÒÑ¾­½ÓÊÜ¹ýµÄÊý¾Ý¿ÉÒÔ¶ªÆúµô£¬µ±Êý¾Ý·¢ÉúÖØ´«Ê±£¬ËüµÄÆ«ÒÆÁ¿**½ûÖ¹**±»ÐÞ¸Ä¡£µ±Ò»¸öEndPointÔÚÒ»¸öStreamÉÏÏàÍ¬Æ«ÒÆ½ÓÊÕµ½²»Í¬Êý¾ÝÊ±£¬»áÊÓÎªÁ¬½Ó´íÎó£ºPROTOCOL_VIOLATION¡£   
+¶ÔQUIC¶øÑÔ£¬StreamÊÇ¶ÀÁ¢µÄÓÐÐò´«ÊäÊý¾ÝµÄ³éÏó£¬µ±Êý¾Ý±»´«Êä¡¢¶ª°üºóÖØÐÂ´«Êä»ò´«ËÍµ½Ó¦ÓÃ³ÌÐòÊ±£¬StreamÖ¡±ß½ç²»ÆÚÍû±»³ÖÓÐ¡£   
+EndPoint**½ûÖ¹**ÔÚÈÎºÎ»¹Ã»ÓÐ±»¶Ô¶ËÉèÖÃÁ÷¿ØÏÞÖÆµÄStreamÉÏ·¢ËÍÊý¾Ý£¬Á÷¿ØµÄÏêÏ¸ÄÚÈÝ¼ûµÚËÄÕÂ¡£   
+    
+## 2.3 StreamÓÅÏÈ¼¶
+Èç¹û·ÖÅä¸øÁ÷µÄ×ÊÔ´µÄÓÅÏÈ¼¶ÕýÈ·£¬Á÷¸´ÓÃ¿ÉÒÔ¶ÔÓ¦ÓÃ³ÌÐòÐÔÄÜ²úÉúÏÔÖøÓ°Ïì¡£    
+QUIC²¢Ã»ÓÐ×Ô¼ºµÄÐÅÏ¢ÓÅÏÈ¼¶»úÖÆ£¬ËüÒÀÀµÉÏ²ãÊ¹ÓÃQUICµÄÓ¦ÓÃÀ´ÉèÖÃ²»Í¬µÄÓÅÏÈ¼¶¡£    
+QUICµÄÊµÏÖ**Ó¦¸Ã**Ìá¹©Ò»ÖÖ·½Ê½À´Ê¹ÉÏ²ãÓ¦ÓÃ¿ÉÒÔÉèÖÃStreamµÄÓÅÏÈ¼¶£¬²¢ÇÒ**Ó¦µ±**Ê¹ÓÃÓ¦ÓÃ²ãµÄÐÅÏ¢À´ÉèÖÃ²»Í¬StreamµÄ´«ÊäÓÅÏÈ¼¶¡£
+
+## 2.4 StreamËùÐè²Ù×÷
+Ó¦ÓÃ²ãÔÚÊ¹ÓÃQUIC StreamÊ±£¬**Ò»¶¨**ÒªÖ´ÐÐÄ³Ð©²Ù×÷£¬±¾ÎÄ²¢Ã»ÓÐ¶¨Òå¾ßÌåµÄAPI£¬µ«ÊÇÕâ¸ö°æ±¾µÄQUICÈÎºÎÊµÏÖ¶¼Ó¦¸ÃÌá¹©±¾½ÚÖÐÃèÊöµÄStream²Ù×÷¡£   
+ÔÚStream·¢ËÍ²¿·Ö£¬Ó¦ÓÃ²ãÓ¦¸ÃÄÜ¹»£º   
++ Ð´Êý¾Ý£¬ÁË½âºÎÊ±Á÷¿ØÐÅÏ¢±»ÉèÖÃÈ»ºó¿ªÊ¼·¢ËÍÐ´ÈëµÄÊý¾Ý¡£   
++ ½áÊøStream(ÍêÕûµÄÖÕÖ¹)£¬½«·¢ËÍÉèÖÃÁËFIN±êÊ¶µÄStreamÖ¡¡£   
++ ÖØÖÃStream(Í»È»ÖÕÖ¹)£¬µ±StreamÉÐÎ´´¦ÓÚÖÕ¶Ë×´Ì¬Ê±£¬·¢ËÍRESET_STREAMÖ¡¡£   
+ÔÚ½ÓÊÜ¶Ë¡£Ó¦ÓÃ³ÌÐòÄÜ¹»£º   
++ ¶ÁÈ¡Êý¾Ý¡£   
++ ÖÕÖ¹¶ÁÈ¡²¢ÇÒÇëÇó¹Ø±Õ£¬¿ÉÄÜ»á·¢ËÍSTOP_SENDINGÖ¡¡£   
+   
+StreamµÄ×´Ì¬¸Ä±äÐèÒªÍ¨Öªµ½Ó¦ÓÃ²ã£¬°üÀ¨¶Ô¶Ë´ò¿ª»ò¹Ø±ÕÁËÒ»¸öStream£¬¶Ô¶ËÖÕÖ¹¶ÁÈ¡Ò»¸öStream£¬ÐÂµÄÊý¾Ý¿É¶Á£¬Á÷¿ØÒýÆðµÄÊý¾Ý¿ÉÐ´»ò²»¿ÉÐ´¡£   
+
+
