@@ -95,10 +95,10 @@ Stream ID最后两位的bit组合共有四种类型，定义如下：
 客户端打开的第一个双向流的Stream ID为0。     
     
 ## 2.2 发送和接收数据    
-Stream帧封装应用发送的数据，一个EndPoint使用Stream ID和偏移量字段来时数据有序。    
+Stream帧封装应用发送的数据，一个EndPoint使用Stream ID和偏移量字段来使数据有序。    
 EndPoint一定保证将Stream 数据有序的传输给上层应用，这就需要EndPoint缓存无序到达的数据，直到流量控制的上限。     
 QUIC对Stream乱序传输的数据并没有特别的考虑，但是，在实现上也可以将乱序的数据透传给上层应用。   
-一个EndPoint可能会在一个Stream上接受到多次相同偏移的数据，其中一些早已经接受过的数据可以丢弃掉，当数据发生重传时，它的偏移量**禁止**被修改。当一个EndPoint在一个Stream上相同偏移接收到不同数据时，会视为连接错误：PROTOCOL_VIOLATION。   
+一个EndPoint可能会在一个Stream上接收到多次相同偏移的数据，其中一些早已经接受过的数据可以丢弃掉，当数据发生重传时，它的偏移量**禁止**被修改。当一个EndPoint在一个Stream上相同偏移接收到不同数据时，会视为连接错误：PROTOCOL_VIOLATION。   
 对QUIC而言，Stream是独立的有序传输数据的抽象，当数据被传输、丢包后重新传输或传送到应用程序时，Stream帧边界不期望被持有。   
 EndPoint**禁止**在任何还没有被对端设置流控限制的Stream上发送数据，流控的详细内容见第四章。   
     
