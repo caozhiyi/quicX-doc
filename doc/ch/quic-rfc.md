@@ -170,7 +170,7 @@ Stream的状态改变需要通知到应用层，包括：
 | Recvd |                   | Recvd |
 +-------+                   +-------+
 ```
-在发送端Endpoint启动(客户端类型为0和2，服务端类型为1和3)由应用层打开的Stream，"Ready"状态标识新创建的Stream已经可以接收应用层的数据，这时将数据进行缓存以等待发送。   
+在发送端Endpoint启动(服务端类型为0和2，客户端类型为1和3)由应用层打开的Stream，"Ready"状态标识新创建的Stream已经可以接收应用层的数据，这时将数据进行缓存以等待发送。   
 发送第一个**STREAM**或**STREAM_DATA_BLOCKED**帧时Stream会进入"Send"状态。 实现上可以将设置Stream ID延后知道Stream发送了第一个STREAM帧进入了"Send"状态，这样可以更好的确认Stream的优先级。   
 由对端方发起的双向Stream接收状态机创建后，发送状态机以"Ready"状态开始。   
 在"Send"状态，EndPoint通过Stream帧发送或重传数据，EndPoint发送过程遵守由对端创建的流量限制，并一直接收和处理对端的**MAX_STREAM_DATA**帧。如果被连接或Stream的流控限制(见4.1节)导致阻塞数据发送，"Send"状态的EndPoint将发送**STREAM_DATA_BLOCKED**帧。  
@@ -179,4 +179,52 @@ Stream的状态改变需要通知到应用层，包括：
 在"Ready","Send"或"Data Sent"状态，应用层都可以终止Stream的数据发送。或者，EndPoint可能接收到对端的**STOP_SENDING**帧。无论哪种情况，EndPoint都会发送一个**RESET_STREAM**帧，之后进入"Reset Sent"状态。   
 EndPoint可能会在Stream上第一次就发送**RESET_STREAM**帧，这将导致Stream打开发送部分并直接进入"Reset Sent"状态。   
 一旦**RESET_STREAM**帧被确认，Stream的发送端会进入"Reset Recvd"的终端状态。
-## 3.1 Stream的接收状态
+## 3.2 Stream的接收状态
+下图展示了从对端接收数据的部分状态：
+```
+    o
+    | Recv STREAM / STREAM_DATA_BLOCKED / RESET_STREAM
+    | Create Bidirectional Stream (Sending)
+    | Recv MAX_STREAM_DATA / STOP_SENDING (Bidirectional)
+    | Create Higher-Numbered Stream
+    v
++-------+
+|  Recv | Recv RESET_STREAM
+|       |-----------------------.
++-------+                       |
+    |                           |  
+    | Recv STREAM + FIN         |
+    v                           |
++-------+                       |
+| Size  |   Recv RESET_STREAM   |
+| Known |---------------------->|
++-------+                       |
+    |                           |
+    |Recv All Data              |
+    v                           v
++-------+ Recv RESET_STREAM +-------+
+| Data  |--- (optional) --->| Reset |
+| Recvd |   Recv All Data   | Recvd |
++-------+<-- (optional) ----+-------+
+    |                           |
+    | App Read All Data         | App Read RST
+    v                           v
++-------+                   +-------+
+| Data  |                   | Reset |
+| Read  |                   | Read  |
++-------+                   +-------+
+```
+Stream接收部分不跟踪发送部分无法观测的状态，如"Ready"状态。Stream的接收部分跟踪向应用程序传递的数据。   
+当接收到对端发送的第一个**STREAM**，**STREAM_DATA_BLOCKED**或**RESET_STREAM**帧(服务端类型为0和2，客户端类型为1和3)时，创建Stream的接收部分。当接收到对端发送的**MAX_STREAM_DATA**，**STOP_SENDING**帧时也会创建Stream的发送部分。Stream发送部分的起始状态是"Recv"。    
+当EndPoint创建双向发送Stream的发送部分进入"Ready"时，Stream的接收部分进入"Recv"状态。
+当接收到对端发送的**MAX_STREAM_DATA**，**STOP_SENDING**EndPoint打开一个双向Stream。一个未打开的Stream接收到**MAX_STREAM_DATA**表示对付按已经打开了Stream并且提供了流控设置。一个未打开的Stream接收到**STOP_SENDING**表示对端希望从这个Stream接收数据。当发送丢包或重传时，这两种包都可能比**STREAM**和**STREAM_DATA_BLOCKED**先到达。    
+在Stream创建之前，相同类型的Stream较小Stream ID**一定**被创建过。这样确保Stream的创建顺序在两个EndPoint上是一致的。   
+在"Recv"状态，EndPoint接收**STREAM**和**STREAM_DATA_BLOCKED**帧，缓存接收的数据，组合排序然后传输给应用。当数据交付给应用时，可以复用缓存。EndPoint发送MAX_STREAM_DATA帧通知对端发送更多的数据。   
+当接收到设置了**FIN**的**STREAM**帧时，就获知了Stream的最终大小。Stream的接收部分进入"Size Known"状态。在此状态，EndPoint不再发送**MAX_STREAM_DATA**给对端，只是接收数据。    
+一旦Stream接收到了所有的数据，接收部分就进入了"Data Recvd"状态，这可能与接收到**FIN**的**STREAM**进入"Size Known"是同一帧。这之后，任何**STREAM**帧和**STREAM_DATA_BLOCKED**帧都可以被丢弃。    
+"Data Recvd"状态维持到应用接收完所有的数据，当所有数据都交付完成时，Stream进入"Data Read"状态，这是一个终端状态。    
+在"Recv"或"Size Know"状态接收到**RESET_STREAM**帧，Stream会进入"Reset Recvd"状态，这可能会导致中断向应用交付数据的过程。    
+可能在所有数据都接收完成时收到**RESET_STREAM**帧(在"Data Recvd"状态)，同样，也可能在接收到**RESET_STREAM**帧之后又接收到剩余的数据携带帧(在"Reset Recvd"状态)，这时实现可以自己选择处理方式。    
+发送**RESET_STREAM**表示EndPoint不再发送数据，然后并没有要求接收到**RESET_STREAM**后中断数据接收。一种实现可能会切断Stream的数据接收过程然后丢弃掉所有已经接收缓存的数据，然后发送**RESET_STREAM**信号(通知上层)。当所有的数据都已经接收并缓存以等待应用读取时，**RESET_STREAM**也可能被忽略，这时Stream的接收部分依然处于"Data Recvd"状态。    
+一旦应用接收到Stream重置的信号，Stream的接收部分进入"Reset Read"的终端状态。    
+## 3.3 Stream的帧类型
