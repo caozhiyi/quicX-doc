@@ -171,9 +171,9 @@ Stream的状态改变需要通知到应用层，包括：
 +-------+                   +-------+
 ```
 在发送端Endpoint启动(客户端类型为0和2，服务端类型为1和3)由应用层打开的Stream，"Ready"状态标识新创建的Stream已经可以接收应用层的数据，这时将数据进行缓存以等待发送。   
-发送第一个**STREAM**或**STREAM_DATA_BLOCKED**帧时Stream会进入"Send"状态。 实现上可以将设置Stream ID延后知道Stream发送了第一个STREAM帧进入了"Send"状态，这样可以更好的确认Stream的优先级。   
+发送第一个**STREAM**或**STREAM_DATA_BLOCKED**帧时Stream会进入"Send"状态。 实现上可以将设置Stream ID延后直到Stream发送了第一个**STREAM**帧进入了"Send"状态，这样可以更好的确认Stream的优先级。   
 由对端方发起的双向Stream接收状态机创建后，发送状态机以"Ready"状态开始。   
-在"Send"状态，EndPoint通过Stream帧发送或重传数据，EndPoint发送过程遵守由对端创建的流量限制，并一直接收和处理对端的**MAX_STREAM_DATA**帧。如果被连接或Stream的流控限制(见4.1节)导致阻塞数据发送，"Send"状态的EndPoint将发送**STREAM_DATA_BLOCKED**帧。  
+在"Send"状态，EndPoint通过**STREAM**帧发送或重传数据，EndPoint发送过程遵守由对端创建的流量限制，并一直接收和处理对端的**MAX_STREAM_DATA**帧。如果被连接或Stream的流控限制(见4.1节)导致阻塞数据发送，"Send"状态的EndPoint将发送**STREAM_DATA_BLOCKED**帧。  
 当应用层的数据被全部发送完并且发送了**FIN**的**STREAM**帧，Stream的发送端进入"Data Sent"状态，之后EndPoint只会做一些必要的数据重传不再接收新的应用层数据。在这个状态，EndPoint不用检查流控限制或者发送**STREAM_DATA_BLOCKED**帧，但是还是可能会接收到**MAX_STREAM_DATA**帧，直到对端接收到最终的Stream数据，不过此时可以安全的忽略对端发送的**MAX_STREAM_DATA**帧。   
 一旦所有的数据都被确认，Stream发送端进入"Data Recvd"状态，这是一个终端状体。   
 在"Ready","Send"或"Data Sent"状态，应用层都可以终止Stream的数据发送。或者，EndPoint可能接收到对端的**STOP_SENDING**帧。无论哪种情况，EndPoint都会发送一个**RESET_STREAM**帧，之后进入"Reset Sent"状态。   
