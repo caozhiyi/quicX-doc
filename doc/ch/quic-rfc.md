@@ -228,3 +228,60 @@ Stream接收部分不跟踪发送部分无法观测的状态，如"Ready"状态�
 发送**RESET_STREAM**表示EndPoint不再发送数据，然后并没有要求接收到**RESET_STREAM**后中断数据接收。一种实现可能会切断Stream的数据接收过程然后丢弃掉所有已经接收缓存的数据，然后发送**RESET_STREAM**信号(通知上层)。当所有的数据都已经接收并缓存以等待应用读取时，**RESET_STREAM**也可能被忽略，这时Stream的接收部分依然处于"Data Recvd"状态。    
 一旦应用接收到Stream重置的信号，Stream的接收部分进入"Reset Read"的终端状态。    
 ## 3.3 Stream的帧类型
+Stream的发送方只会发送三种类型的帧，他们影响着发送端和接收端Stream的状态：   
++ STREAM(见19.8节)
++ STREAM_DATA_BLOCKED(见19.13节)
++ RESET_STREAM(见19.4节)
+
+Stream在终端状态时(“Data Recvd”或“Reset Recvd”)，**禁止**发送任何携带上述类型的帧。一个发送者在发送了**STREAM**之后，**禁止**再发送**STREAM**或**STREAM_DATA_BLOCKED**帧。因为，在终端状态或者“Reset Sent”状态，由于可能出现的延迟到达，接收端在任何状态都会接收这三种类型的帧。   
+Stream的接收端发送** MAX_STREAM_DATA**和** STOP_SENDING**帧。   
+Stream的发送端在”Recv”状态时只发送** MAX_STREAM_DATA**帧，接收端在未收到**RESET_STREAM**时，在任何状态都可以发送** STOP_SENDING**，也就是除了”Reset Recvd”,”Reset Read”状态。然而，在”Data Recvd”状态发送** STOP_SENDING**并没有什么意义，因为所有的数据都已经被接收。因为包的延迟到达，Stream的接收端在任何时候都有可能收到这两种帧。
+## 3.4 双向Stream状态
+一个双向的Stream由发送和接收两部分组成，实现上可以将发送和接送部分呃状态组合为双向Stream的状态。最简单的模型，当发送和接收部分都不处于终端状态时，Stream处于”Open”状态，当发送和接收都处于终端状态时，Stream处于”Closed”状态。    
+下图展示了一种更为复杂的组合Stream状态，其近似于HTTP/2。由Stream的发送和接收部分的多个状态映射为一个复合状态。注意，这只是这种映射的一种可能；这种映射要求在转换到“closed”或“half closed”状态之前确认所有数据。
+```
++----------------------+----------------------+-----------------+
+| 发送部分状态          |  接收部分状态         |  复合状态        |
++======================+======================+=================+
+| No Stream/Ready      | No Stream/Recv *1    | idle            |
++----------------------+----------------------+-----------------+
+| Ready/Send/Data Sent | Recv/Size Known      | open            |
++----------------------+----------------------+-----------------+
+| Ready/Send/Data Sent | Data Recvd/Data Read | half-closed     |
+|                      |                      | (remote)        |
++----------------------+----------------------+-----------------+
+| Ready/Send/Data Sent | Reset Recvd/Reset    | half-closed     |
+|                      | Read                 | (remote)        |
++----------------------+----------------------+-----------------+
+| Data Recvd           | Recv/Size Known      | half-closed     |
+|                      |                      | (local)         |
++----------------------+----------------------+-----------------+
+| Reset Sent/Reset     | Recv/Size Known      | half-closed     |
+| Recvd                |                      | (local)         |
++----------------------+----------------------+-----------------+
+| Reset Sent/Reset     | Data Recvd/Data Read | closed          |
+| Recvd                |                      |                 |
++----------------------+----------------------+-----------------+
+| Reset Sent/Reset     | Reset Recvd/Reset    | closed          |
+| Recvd                | Read                 |                 |
++----------------------+----------------------+-----------------+
+| Data Recvd           | Data Recvd/Data Read | closed          |
++----------------------+----------------------+-----------------+
+| Data Recvd           | Reset Recvd/Reset    | closed          |
+|                      | Read                 |                 |
++----------------------+----------------------+-----------------+
+```
+注(*1):    
+如果Stream没有创建，或者Stream的接收状态处于"Recv"而没有接收到任何帧，则视为"idle"。
+## 3.5 请求的状态转换
+如果一个应用不再对Stream接收的数据感兴趣，可以终止Stream的读取然后设置一个应用的error code。如果Stream处于"Recv"或"Size Known"状态，传输应该通过发送**STOP_SENDING**帧来提示对端关闭Stream的发送部分。这表示接收端的应用不再读取之后接收到的数据，但并不代表会忽略掉已经接收到的数据。    
+在发送**STOP_SENDING**后接收到的**STREAM**帧依然会计入连接和流量控制中，即使这些帧可能会被丢弃。    
+一个**STOP_SENDING**帧要求接收端返回一个**RESET_STREAM**帧，如果Stream处于"Ready"或"Send"状态，在接收到**STOP_SENDING**帧后**一定**要发送一个**RESET_STREAM**帧做为反馈。如果Stream处于"Data Sent"状态并且未传输的数据被申明为丢弃，则EndPoint**应该**发送一个**RESET_STREAM**帧来代替重传。    
+如果Stream在接收到**STOP_SENDING**的时候已经处于"Data Sent"状态，EndPoint如果想要终止先前发送的**STREAM**帧的重传，则要先发送一个**RESET_STREAM**帧。    
+**STOP_SENDING** **应该**只能被没有被对端重置的Stream发送，**STOP_SENDING**对处于"Recv"或"Size Known"状态的Stream是非常有效的。    
+如果前一个**STOP_SENDING**丢失，则EndPoint需要重传另一个**STOP_SENDING**，然而，一旦Stream接收到了所有数据或接收到了**RESET_STREAM**，也就是说，Stream已经不处于"Recv"或"Size Known"状态，就没有必要再发送**STOP_SENDING**帧了。    
+如果EndPoint希望终止双向Stream两个方向上的数据传输，可以发送一个**RESET_STREAM**来终止通知对端自己不再发送，然后再发送一个**STOP_SENDING**来通知对端不要再向自己发送。    
+
+## 4 流量控制
+非常有必要来限制数据的数量以使接收端可以有效缓存，一是防止一个快速的发送端压垮一个较慢的接收端，二是防止恶意的发送端发送大量数据以占用接收过量的内存。为了十接收端能够控制连接使用的内存以压缩发送端的发送数据量，Stram的流控既有单独的控制也有聚合的控制。一个QUIC的接收端在任何时候都控制着发送端最大数据量的发送限制。详细描述见4.1节和4.2节。    
+同样，为了控制一个连接上的并发，QUIC的EndPoint控制这对端可以启动的最大Stream数量限制。详细描述见4.5节。    
