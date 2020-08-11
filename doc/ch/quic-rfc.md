@@ -215,11 +215,11 @@ EndPoint可能会在Stream上第一次就发送**RESET_STREAM**帧，这将导�
 +-------+                   +-------+
 ```
 Stream接收部分不跟踪发送部分无法观测的状态，如"Ready"状态。Stream的接收部分跟踪向应用程序传递的数据。   
-当接收到对端发送的第一个**STREAM**，**STREAM_DATA_BLOCKED**或**RESET_STREAM**帧(服务端类型为0和2，客户端类型为1和3)时，创建Stream的接收部分。当接收到对端发送的**MAX_STREAM_DATA**，**STOP_SENDING**帧时也会创建Stream的发送部分。Stream发送部分的起始状态是"Recv"。    
+当接收到对端发送的第一个**STREAM**，**STREAM_DATA_BLOCKED**或**RESET_STREAM**帧(客户端类型为0和2，服务端类型为1和3)时，创建Stream的接收部分。当接收到对端发送的**MAX_STREAM_DATA**，**STOP_SENDING**帧时也会创建Stream的发送部分。Stream发送部分的起始状态是"Recv"。    
 当EndPoint创建双向发送Stream的发送部分进入"Ready"时，Stream的接收部分进入"Recv"状态。
-当接收到对端发送的**MAX_STREAM_DATA**，**STOP_SENDING**EndPoint打开一个双向Stream。一个未打开的Stream接收到**MAX_STREAM_DATA**表示对付按已经打开了Stream并且提供了流控设置。一个未打开的Stream接收到**STOP_SENDING**表示对端希望从这个Stream接收数据。当发送丢包或重传时，这两种包都可能比**STREAM**和**STREAM_DATA_BLOCKED**先到达。    
+当接收到对端发送的**MAX_STREAM_DATA**，**STOP_SENDING**EndPoint打开一个双向Stream。一个未打开的Stream接收到**MAX_STREAM_DATA**表示对端已经打开了Stream并且提供了流控设置。一个未打开的Stream接收到**STOP_SENDING**表示对端希望从这个Stream接收数据。当发送丢包或重传时，这两种包都可能比**STREAM**和**STREAM_DATA_BLOCKED**先到达。    
 在Stream创建之前，相同类型的Stream较小Stream ID**一定**被创建过。这样确保Stream的创建顺序在两个EndPoint上是一致的。   
-在"Recv"状态，EndPoint接收**STREAM**和**STREAM_DATA_BLOCKED**帧，缓存接收的数据，组合排序然后传输给应用。当数据交付给应用时，可以复用缓存。EndPoint发送MAX_STREAM_DATA帧通知对端发送更多的数据。   
+在"Recv"状态，EndPoint接收**STREAM**和**STREAM_DATA_BLOCKED**帧，缓存接收的数据，组合排序然后传输给应用。当数据交付给应用时，可以复用缓存。EndPoint发送**MAX_STREAM_DATA**帧通知对端发送更多的数据。   
 当接收到设置了**FIN**的**STREAM**帧时，就获知了Stream的最终大小。Stream的接收部分进入"Size Known"状态。在此状态，EndPoint不再发送**MAX_STREAM_DATA**给对端，只是接收数据。    
 一旦Stream接收到了所有的数据，接收部分就进入了"Data Recvd"状态，这可能与接收到**FIN**的**STREAM**进入"Size Known"是同一帧。这之后，任何**STREAM**帧和**STREAM_DATA_BLOCKED**帧都可以被丢弃。    
 "Data Recvd"状态维持到应用接收完所有的数据，当所有数据都交付完成时，Stream进入"Data Read"状态，这是一个终端状态。    
