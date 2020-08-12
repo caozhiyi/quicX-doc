@@ -50,7 +50,7 @@ QUIC底层使用UDP以避免客户端操作系统和通信中间设备的改动�
   - 第20节 错误定义    
 附录文件描述了本文未尽的一些QUIC细节，包括[拥塞控制](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)，以及[QUIC-TLS](https://tools.ietf.org/html/draft-ietf-quic-recovery-27)。   
 
-## 1.2 术语和定义
+### 1.2 术语和定义
 关键字 "**一定**", "**禁止**", "**要求**", "**应该**", "**不应**", "**推荐**", "**不推荐**", "**可以**", "**可选**"的使用与[BCP14](https://tools.ietf.org/html/bcp14) [RFC2119](https://tools.ietf.org/html/rfc2119) [RFC8174](https://tools.ietf.org/html/rfc8174)相同。   
 本文常用的术语定义如下：    
 QUIC：本文描述的传输协议，QUIC只是一个名字，而不是一个缩略词。    
@@ -65,7 +65,7 @@ Address：ip版本，ip 地址，UDP协议，和UDP端口的元组代表了网�
 Stream：在QUIC连接之上，传输有序数据的单向或双向通道，一个QUIC连接可以同时携带多个Stream。   
 应用：使用QUIC发送和接收数据的实体。   
    
-## 1.3 符号约定   
+### 1.3 符号约定   
 本文使用的包和帧的格式定义类似Section 3.1 of [RFC2360](https://tools.ietf.org/html/rfc2360#section-3.1)，约定如下：   
 [x]：表示x是可选的   
 x (A): 表示x长度为A bits   
@@ -78,7 +78,7 @@ Stream 是QUIC提供给应用的轻量级有序数据传输的功能抽象。Str
 Streams可以被创建用来发送数据，与Streams管理相关的其他过程(结束，取消，管理流控)，都是为了施加最小的开销而设计的。比如，一个Stream帧可以创建，关闭Streams或者携带数据。Streams也可以是长存的，直到QUIC连接结束。   
 Steams可以被任意一端EndPoint创建，可以交替着和其他Streams一起发送数据，也可以被取消。QUIC没有提供任何实际的机制来保证不同Streams的数据传输有序。不同Streams间的数据是乱序传输的。   
 QUIC允许操作任意数量的Streams，在任意一个Streams上发送任意数量的数据，这取决于流控和流量限制。   
-## 2.1 Steam的类型和ID
+### 2.1 Steam的类型和ID
 Streams可以是单向或双向的，单向的Streams只能往一个方向发送数据：从Stream的发起方到对端。双向的Stream可以在两个方向上发送数据。   
 在一个连接内，一个数字值作为Stream ID来标识一个Stream，Stream ID是一个62Bit长度的整数，它在一个连接内是独特唯一的。Stream ID按照变长整数进行编码，QUIC EndPoint **禁止**在一个连接内复用 Stream ID。   
 Stream ID的最后一个bit位用来标识发起方，客户端发起的Stream，设置为0，服务器发起的Stream，设置为1。   
@@ -94,7 +94,7 @@ Stream ID最后两位的bit组合共有四种类型，定义如下：
 在每种类型中，Stream ID都是递增创建的，无序使用的流ID会导致该类型的所有流同时打开编号较低的流ID(存疑)。    
 客户端打开的第一个双向流的Stream ID为0。     
     
-## 2.2 发送和接收数据    
+### 2.2 发送和接收数据    
 Stream帧封装应用发送的数据，一个EndPoint使用Stream ID和偏移量字段来使数据有序。    
 EndPoint一定保证将Stream 数据有序的传输给上层应用，这就需要EndPoint缓存无序到达的数据，直到流量控制的上限。     
 QUIC对Stream乱序传输的数据并没有特别的考虑，但是，在实现上也可以将乱序的数据透传给上层应用。   
@@ -102,12 +102,12 @@ QUIC对Stream乱序传输的数据并没有特别的考虑，但是，在实现�
 对QUIC而言，Stream是独立的有序传输数据的抽象，当数据被传输、丢包后重新传输或传送到应用程序时，Stream帧边界不期望被持有。   
 EndPoint**禁止**在任何还没有被对端设置流控限制的Stream上发送数据，流控的详细内容见第四节。   
     
-## 2.3 Stream优先级
+### 2.3 Stream优先级
 如果分配给流的资源的优先级正确，Stream 复用可以对应用程序性能产生显著影响。    
 QUIC并没有自己的信息优先级机制，它依赖使用QUIC的上层应用来设置不同的优先级。    
 QUIC的实现**应该**提供一种方式来使上层应用可以设置Stream的优先级，并且**应当**使用应用层的信息来设置不同Stream的传输优先级。
 
-## 2.4 Stream所需操作
+### 2.4 Stream所需操作
 应用层在使用QUIC Stream时，**一定**要执行某些操作，本文并没有定义具体的API，但是这个版本的QUIC任何实现都应该提供本节中描述的Stream操作。   
 在Stream发送部分，应用层应该能够：   
 + 写数据，了解何时流控信息被设置然后开始发送写入的数据。   
@@ -133,7 +133,7 @@ Stream的状态改变需要通知到应用层，包括：
 一个EndPoint**必须**在一个Stream type上递增的创建Stream ID。   
 注意： 这些状态的信息量很大，本文使用Stream状态来描述何时以及如何发送不同类型的帧的规则，以及接收到不同类型帧时预期的反应。理解了这些状态机对实现QUIC非常有用。实现时可以定义不同的状态机，只要其实现与本文定义一致。   
 
-## 3.1 Stream的发送状态
+### 3.1 Stream的发送状态
 下图展示了Stream发送数据到对端的部分状态： 
 ```
     o    
@@ -179,7 +179,7 @@ Stream的状态改变需要通知到应用层，包括：
 在"Ready","Send"或"Data Sent"状态，应用层都可以终止Stream的数据发送。或者，EndPoint可能接收到对端的**STOP_SENDING**帧。无论哪种情况，EndPoint都会发送一个**RESET_STREAM**帧，之后进入"Reset Sent"状态。   
 EndPoint可能会在Stream上第一次就发送**RESET_STREAM**帧，这将导致Stream打开发送部分并直接进入"Reset Sent"状态。   
 一旦**RESET_STREAM**帧被确认，Stream的发送端会进入"Reset Recvd"的终端状态。
-## 3.2 Stream的接收状态
+### 3.2 Stream的接收状态
 下图展示了从对端接收数据的部分状态：
 ```
     o
@@ -227,7 +227,7 @@ Stream接收部分不跟踪发送部分无法观测的状态，如"Ready"状态�
 可能在所有数据都接收完成时收到**RESET_STREAM**帧(在"Data Recvd"状态)，同样，也可能在接收到**RESET_STREAM**帧之后又接收到剩余的数据携带帧(在"Reset Recvd"状态)，这时实现可以自己选择处理方式。    
 发送**RESET_STREAM**表示EndPoint不再发送数据，然后并没有要求接收到**RESET_STREAM**后中断数据接收。一种实现可能会切断Stream的数据接收过程然后丢弃掉所有已经接收缓存的数据，然后发送**RESET_STREAM**信号(通知上层)。当所有的数据都已经接收并缓存以等待应用读取时，**RESET_STREAM**也可能被忽略，这时Stream的接收部分依然处于"Data Recvd"状态。    
 一旦应用接收到Stream重置的信号，Stream的接收部分进入"Reset Read"的终端状态。    
-## 3.3 Stream的帧类型
+### 3.3 Stream的帧类型
 Stream的发送方只会发送三种类型的帧，他们影响着发送端和接收端Stream的状态：   
 + STREAM(见19.8节)
 + STREAM_DATA_BLOCKED(见19.13节)
@@ -240,7 +240,7 @@ Stream的接收端发送:
 + STOP_SENDING   
 
 Stream的接收端在”Recv”状态时只发送**MAX_STREAM_DATA**帧，接收端在未收到**RESET_STREAM**时，在任何状态都可以发送**STOP_SENDING**帧，也就是除了”Reset Recvd”,”Reset Read”状态。然而，在”Data Recvd”状态发送**STOP_SENDING**并没有什么意义，因为所有的数据都已经被接收。因为包的延迟到达，Stream的发送端在任何时候都有可能收到这两种帧。
-## 3.4 双向Stream状态
+### 3.4 双向Stream状态
 一个双向的Stream由发送和接收两部分组成，实现上可以将发送和接送部分的状态组合为双向Stream的状态。最简单的模型，当发送和接收部分都不处于终端状态时，Stream处于”Open”状态，当发送和接收都处于终端状态时，Stream处于”Closed”状态。    
 下图展示了一种更为复杂的组合Stream状态，其近似于HTTP/2。由Stream的发送和接收部分的多个状态映射为一个复合状态。注意，这只是这种映射的一种可能；这种映射要求在转换到“closed”或“half closed”状态之前确认所有数据。
 ```
@@ -277,7 +277,7 @@ Stream的接收端在”Recv”状态时只发送**MAX_STREAM_DATA**帧，接收
 ```
 注(*1):    
 如果Stream没有创建，或者Stream的接收状态处于"Recv"而没有接收到任何帧，则视为"idle"状态。
-## 3.5 请求的状态转换
+### 3.5 请求的状态转换
 如果一个应用不再对Stream接收的数据感兴趣，可以终止Stream的读取然后设置一个应用的error code。如果Stream处于"Recv"或"Size Known"状态，传输应该通过发送**STOP_SENDING**帧来提示对端关闭Stream的发送部分。这表示接收端的应用不再读取之后接收到的数据，但并不代表会忽略掉已经接收到的数据。    
 在发送**STOP_SENDING**后接收到的**STREAM**帧依然会计入连接和流量控制中，即使这些帧可能会被丢弃。    
 一个**STOP_SENDING**帧要求接收端返回一个**RESET_STREAM**帧，如果Stream处于"Ready"或"Send"状态，在接收到**STOP_SENDING**帧后**一定**要发送一个**RESET_STREAM**帧做为反馈。如果Stream处于"Data Sent"状态并且未传输的数据被申明为丢弃，EndPoint**应该**发送一个**RESET_STREAM**帧来代替重传。    
