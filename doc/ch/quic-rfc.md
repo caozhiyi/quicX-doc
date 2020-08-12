@@ -233,9 +233,12 @@ Stream的发送方只会发送三种类型的帧，他们影响着发送端和�
 + STREAM_DATA_BLOCKED(见19.13节)
 + RESET_STREAM(见19.4节)
 
-Stream在终端状态时(“Data Recvd”或“Reset Recvd”)，**禁止**发送任何携带上述类型的帧。一个发送者在发送了**STREAM**之后，**禁止**再发送**STREAM**或**STREAM_DATA_BLOCKED**帧。因为，在终端状态或者“Reset Sent”状态，由于可能出现的延迟到达，接收端在任何状态都会接收这三种类型的帧。   
-Stream的接收端发送** MAX_STREAM_DATA**和** STOP_SENDING**帧。   
-Stream的发送端在”Recv”状态时只发送** MAX_STREAM_DATA**帧，接收端在未收到**RESET_STREAM**时，在任何状态都可以发送** STOP_SENDING**，也就是除了”Reset Recvd”,”Reset Read”状态。然而，在”Data Recvd”状态发送** STOP_SENDING**并没有什么意义，因为所有的数据都已经被接收。因为包的延迟到达，Stream的接收端在任何时候都有可能收到这两种帧。
+Stream在终端状态时(“Data Recvd”或“Reset Recvd”)，**禁止**发送任何携带上述类型的帧。一个发送者在发送了**RESET_STREAM**之后，**禁止**再发送**STREAM**或**STREAM_DATA_BLOCKED**帧。因为，在终端状态或者“Reset Sent”状态，由于可能出现的延迟到达，接收端在任何状态都会接收这三种类型的帧。   
+
+Stream的接收端发送:    
++ MAX_STREAM_DATA
++ STOP_SENDING   
+Stream的接收端在”Recv”状态时只发送**MAX_STREAM_DATA**帧，接收端在未收到**RESET_STREAM**时，在任何状态都可以发送**STOP_SENDING**帧，也就是除了”Reset Recvd”,”Reset Read”状态。然而，在”Data Recvd”状态发送**STOP_SENDING**并没有什么意义，因为所有的数据都已经被接收。因为包的延迟到达，Stream的发送端在任何时候都有可能收到这两种帧。
 ## 3.4 双向Stream状态
 一个双向的Stream由发送和接收两部分组成，实现上可以将发送和接送部分呃状态组合为双向Stream的状态。最简单的模型，当发送和接收部分都不处于终端状态时，Stream处于”Open”状态，当发送和接收都处于终端状态时，Stream处于”Closed”状态。    
 下图展示了一种更为复杂的组合Stream状态，其近似于HTTP/2。由Stream的发送和接收部分的多个状态映射为一个复合状态。注意，这只是这种映射的一种可能；这种映射要求在转换到“closed”或“half closed”状态之前确认所有数据。
