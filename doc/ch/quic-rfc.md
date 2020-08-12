@@ -313,3 +313,11 @@ EndPoints应该在Stream取消时就流量限制的偏移量达成一致，以�
 **RESET_STREAM**帧会突然终止Stream的一个方向，对于一个双向的Stream来说，**RESET_STREAM**对另一个方向的流量控制没有影响。两端都必须保持在未终止方向上的流量控制，直到该方进入终端状态或者其中一个EndPoint发送了**CONNECTION_CLOSE**。
 
 ### 4.4 Stream最终大小
+最终大小是Stream消耗流量控制偏移的数量。如果每个相邻的byte都被只发送了一次，那么最终大小就是发送byte的数量。通常，最终大小比Stream上已经发送的最大偏移高一个。如果还没有数据发送，则是0。    
+对于一个已经被重置的Stream，最终大小在**RESET_STREAM**中携带，或者，最终大小是偏移量加上用FIN标志标记的Stream帧的长度。如果是单向Stream的接收端，则为0。
+
+当接受端的Stream在进入”Size Known”或”Reset Recvd”状态时，会知晓最终的大小。EndPoint**禁止**发送超过最终大小的数据。    
+一旦Stream的最终大小被确定，就不能再修改。如果接收到了**RESET_STREAM**或**STREAM**帧导致最终大小发生变化，则EndPoint**应该**发送一个**FINAL_SIZE_ERROR**错误作为响应(见11节)。接收端**应该**将超过最终大小的数据视为**FINAL_SIZE_ERROR**错误，即使在Stream关闭之后。生成这些错误并不是强制性的，而是因为EndPoint生成这些错误也意味着EndPoint需要为关闭Stream保持最终大小状态，这可能意味着重要的状态承诺。
+
+### 4.5 控制并发
+Endpoint限制着对端打开Stream的并发数据。只有Stream ID比(max_stream * 4 + initial_stream_id_for_type)小的Stream可以被打开。初始的限制在在握手时通过传输参数设置，之后的限制通过**MAX_STREAMS**帧来调整。单独的限制适用于单向流和双向流。
