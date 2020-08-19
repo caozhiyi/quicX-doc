@@ -332,3 +332,12 @@ EndPoint**禁止**超过他们对端设置的限制。一旦收到帧携带的St
 如果EndPoint由于对端的限制不能再打开新的Stream，则**应该**发送**STREAMS_BLOCKED**帧(见9.14节)，这对程序调试非常有用。EndPoint**一定不要**等待**STREAMS_BLOCKED**帧之后再调整对端Stream数量限制，如果这样做的话意味着对端至少要阻塞一个RTT周期，如果对端选择不发送**STREAMS_BLOCKED**帧，则可能会阻塞更长时间。    
 
 ## 5 连接
+QUIC的连接建立结合了版本协商和加密和传输握手过程以减少连接建立延迟，这将在第七节讲述。一旦连接建立，则可以迁移到任何一个不同ip和端口的EndPoint上，这将在第九节讲述。最后，第十节将说明连接的中断过程。
+
+### 5.1 连接ID
+每个连接ID都有一个关联的序列号用来消除重复消息。在握手阶段，EndPoint发出的初始连接ID在长数据包头(见17.2节)的Source Connection ID字段中，初始连接ID的序列号为0，如果发送了preferred_address参数，则提供的连接ID为1。    
+之后附加的连接ID通过**NEW_CONNECTION_ID**帧发送给对端。每个新发布的连接ID**必须**加1。客户端在初始包中随机选择的连接ID和重试包提供的任何连接ID都不会被分配序列号，除非服务器选择将它们保留为初始连接ID。   
+当一个EndPoint发出了一个连接ID，则在连接期间它**必须** **接收**携带这个连接ID的包直到对端通过**RETIRE_CONNECTION_ID**帧宣布这个ID失效。已经发出而且没有失效的连接ID时活跃的，任何活动的连接ID在任何时候都是有效的，可以在任何包类型中使用，这包括服务器通过preferred_address参数发出的连接ID。    
+EndPoint应该确保它的对端有足够数量可用和未使用的连接ID，EndPoint存储接受到的连接ID以供将来使用，并在活跃的连接上通过active_connection_id_limit参数来宣布愿意存储的活跃ID数量。EndPoint**一定不要**提供过多的连接ID超过对端的限制，当EndPoint接收到超过通过active_connection_id_limit参数宣布的ID限制的连接ID时，**必须**用**CONNECTION_ID_LIMIT_ERROR**错误关闭这个连接。    
+当对端退出一个连接ID时，EndPoint必须提供一个新的连接ID，如果一个EndPoint提供的连接ID少于对端的活动连接ID限制，那么当它接收到一个带有以前未使用的连接ID的数据包时，它**可能**会提供一个新的连接ID。EndPoint可以限制为每个连接发出的连接ID的频率或总数，以避免连接ID用完的风险(请参阅第10.4.2节)。    
+启动连接迁移并需要non-zero-length连接ID的EndPoint应确保其对端可用的连接ID池允许在迁移时使用新的连接ID，因为如果池耗尽，对端将关闭连接。
