@@ -321,13 +321,13 @@ EndPoints应该在Stream取消时就流量限制的偏移量达成一致，以�
 对于一个已经被重置的Stream，最终大小在**RESET_STREAM**中携带，或者，最终大小是偏移量加上用FIN标志标记的Stream帧的长度。如果是单向Stream的接收端，则为0。
 
 当接受端的Stream在进入”Size Known”或”Reset Recvd”状态时，会知晓最终的大小。EndPoint**禁止**发送超过最终大小的数据。    
-一旦Stream的最终大小被确定，就不能再修改。如果接收到了**RESET_STREAM**或**STREAM**帧导致最终大小发生变化，则EndPoint**应该**发送一个**FINAL_SIZE_ERROR**错误作为响应(见11节)。接收端**应该**将超过最终大小的数据视为**FINAL_SIZE_ERROR**错误，即使在Stream关闭之后。生成这些错误并不是强制性的，而是因为EndPoint生成这些错误也意味着EndPoint需要为关闭Stream保持最终大小状态，这可能意味着重要的状态承诺。
+一旦Stream的最终大小被确定，就不能再修改。如果接收到了**RESET_STREAM**或**STREAM**帧导致最终大小发生变化，则EndPoint**应该**发送一个**FINAL_SIZE_ERROR**错误作为响应(见11节)。接收端**应该**将超过最终大小的数据视为**FINAL_SIZE_ERROR**错误，即使在Stream关闭之后。生成这些错误并不是强制性的，而是因为EndPoint生成这些错误也意味着EndPoint需要为关闭Stream保持最终大小状态，这是重要的状态承诺。
 
 ### 4.5 控制并发
 Endpoint限制着对端打开Stream的并发数据。只有Stream ID比(max_stream * 4 + initial_stream_id_for_type)小的Stream可以被打开。初始的限制在在握手时通过传输参数设置，之后的限制通过**MAX_STREAMS**帧来调整。单独的限制适用于单向流和双向流。    
 如果通过握手时的传输参数或者**MAX_STREAMS**帧接收到的最大Stream数量超过了2^60，这将导致最大的Stream ID不能按照变长整数编码(见16节)。一旦接受到这样的数字，则连接**一定**要立马关闭连接并返回**STREAM_LIMIT_ERROR**错误(见10.3节)。   
 EndPoint**禁止**超过他们对端设置的限制。一旦收到帧携带的Stream ID超过了限制，则**一定**要视为连接错误并返回**STREAM_LIMIT_ERROR**。    
-一旦接受端通过**MAX_STREAMS**接收到了一个Stream数量限制，则再接受到小于这个的限制会被忽略。接收端**一定**要忽略任何不会将限制增大的**MAX_STREAMS**帧。    
+一旦接受端通过**MAX_STREAMS**接收到了一个Stream数量限制，则再接收到小于这个的限制会被忽略。接收端**一定**要忽略任何不会将限制增大的**MAX_STREAMS**帧。    
 与Stream和连接的流量控制一样，实现中要自己定义什么时候通过**MAX_STREAMS**帧限制多少Stream并发到对端。实现可能会选择在Stream ID接近限制时增加限制，以保持对等方可用的流的数量大致一致。    
 如果EndPoint由于对端的限制不能再打开新的Stream，则**应该**发送**STREAMS_BLOCKED**帧(见9.14节)，这对程序调试非常有用。EndPoint**一定不要**等待**STREAMS_BLOCKED**帧之后再调整对端Stream数量限制，如果这样做的话意味着对端至少要阻塞一个RTT周期，如果对端选择不发送**STREAMS_BLOCKED**帧，则可能会阻塞更长时间。    
 
