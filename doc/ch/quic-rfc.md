@@ -321,18 +321,18 @@ EndPoints应该在Stream取消时就流量限制的偏移量达成一致，以�
 对于一个已经被重置的Stream，最终大小在**RESET_STREAM**中携带，或者，最终大小是偏移量加上用FIN标志标记的Stream帧的长度。如果是单向Stream的接收端，则为0。
 
 当接受端的Stream在进入”Size Known”或”Reset Recvd”状态时，会知晓最终的大小。EndPoint**禁止**发送超过最终大小的数据。    
-一旦Stream的最终大小被确定，就不能再修改。如果接收到了**RESET_STREAM**或**STREAM**帧导致最终大小发生变化，则EndPoint**应该**发送一个**FINAL_SIZE_ERROR**错误作为响应(见11节)。接收端**应该**将超过最终大小的数据视为**FINAL_SIZE_ERROR**错误，即使在Stream关闭之后。生成这些错误并不是强制性的，而是因为EndPoint生成这些错误也意味着EndPoint需要为关闭Stream保持最终大小状态，这可能意味着重要的状态承诺。
+一旦Stream的最终大小被确定，就不能再修改。如果接收到了**RESET_STREAM**或**STREAM**帧导致最终大小发生变化，则EndPoint**应该**发送一个**FINAL_SIZE_ERROR**错误作为响应(见11节)。接收端**应该**将超过最终大小的数据视为**FINAL_SIZE_ERROR**错误，即使在Stream关闭之后。生成这些错误并不是强制性的，而是因为EndPoint生成这些错误也意味着EndPoint需要为关闭Stream保持最终大小状态，这是重要的状态承诺。
 
 ### 4.5 控制并发
 Endpoint限制着对端打开Stream的并发数据。只有Stream ID比(max_stream * 4 + initial_stream_id_for_type)小的Stream可以被打开。初始的限制在在握手时通过传输参数设置，之后的限制通过**MAX_STREAMS**帧来调整。单独的限制适用于单向流和双向流。    
 如果通过握手时的传输参数或者**MAX_STREAMS**帧接收到的最大Stream数量超过了2^60，这将导致最大的Stream ID不能按照变长整数编码(见16节)。一旦接受到这样的数字，则连接**一定**要立马关闭连接并返回**STREAM_LIMIT_ERROR**错误(见10.3节)。   
 EndPoint**禁止**超过他们对端设置的限制。一旦收到帧携带的Stream ID超过了限制，则**一定**要视为连接错误并返回**STREAM_LIMIT_ERROR**。    
-一旦接受端通过**MAX_STREAMS**接收到了一个Stream数量限制，则再接受到小于这个的限制会被忽略。接收端**一定**要忽略任何不会将限制增大的**MAX_STREAMS**帧。    
+一旦接受端通过**MAX_STREAMS**接收到了一个Stream数量限制，则再接收到小于这个的限制会被忽略。接收端**一定**要忽略任何不会将限制增大的**MAX_STREAMS**帧。    
 与Stream和连接的流量控制一样，实现中要自己定义什么时候通过**MAX_STREAMS**帧限制多少Stream并发到对端。实现可能会选择在Stream ID接近限制时增加限制，以保持对等方可用的流的数量大致一致。    
 如果EndPoint由于对端的限制不能再打开新的Stream，则**应该**发送**STREAMS_BLOCKED**帧(见9.14节)，这对程序调试非常有用。EndPoint**一定不要**等待**STREAMS_BLOCKED**帧之后再调整对端Stream数量限制，如果这样做的话意味着对端至少要阻塞一个RTT周期，如果对端选择不发送**STREAMS_BLOCKED**帧，则可能会阻塞更长时间。    
 
 ## 5 连接
-QUIC的连接建立结合了版本协商和加密和传输握手过程以减少连接建立延迟，这将在第七节讲述。一旦连接建立，则可以迁移到任何一个不同ip和端口的EndPoint上，这将在第九节讲述。最后，第十节将说明连接的中断过程。
+QUIC的连接建立过程结合了版本协商和加密传输握手以减少连接建立时的延迟，这将在第七节讲述。一旦连接建立，则可以迁移到任何一个不同ip和端口的EndPoint上，这将在第九节讲述。最后，第十节将说明连接的中断过程。
 
 ### 5.1 连接ID
 每个连接都有一组连接标识或者连接ID，以用来标识一个连接。连接ID由EndPoint独立选择，每个EndPoint选择对端使用的连接ID。连接ID的主要作用是确保下层协议(UDP,IP)协议的地址变更不会导致QUIC连接的数据传输到错误的EndPoint上。每个EndPoint都使用一个特定于实现(或特定于部署的)方式来选择连接ID。    
@@ -347,7 +347,7 @@ QUIC的连接建立结合了版本协商和加密和传输握手过程以减少�
 每个连接ID都有一个关联的序列号用来消除重复消息。在握手阶段，EndPoint发出的初始连接ID在长数据包头(见17.2节)的Source Connection ID字段中，初始连接ID的序列号为0，如果发送了preferred_address参数，则提供的连接ID为1。    
 之后附加的连接ID通过**NEW_CONNECTION_ID**帧发送给对端。每个新发布的连接ID**必须**加1。客户端在初始包中随机选择的连接ID和重试包提供的任何连接ID都不会被分配序列号，除非服务器选择将它们保留为初始连接ID。   
 当一个EndPoint发出了一个连接ID，则在连接期间它**必须** **接收**携带这个连接ID的包直到对端通过**RETIRE_CONNECTION_ID**帧宣布这个ID失效。已经发出而且没有失效的连接ID时活跃的，任何活动的连接ID在任何时候都是有效的，可以在任何包类型中使用，这包括服务器通过preferred_address参数发出的连接ID。    
-EndPoint应该确保它的对端有足够数量可用和未使用的连接ID，EndPoint存储接受到的连接ID以供将来使用，并在活跃的连接上通过active_connection_id_limit参数来宣布愿意存储的活跃ID数量。EndPoint**一定不要**提供过多的连接ID超过对端的限制，当EndPoint接收到超过通过active_connection_id_limit参数宣布的ID限制的连接ID时，**必须**用**CONNECTION_ID_LIMIT_ERROR**错误关闭这个连接。    
+EndPoint应该确保它的对端有足够数量可用和未使用的连接ID，EndPoint存储接收到的连接ID以供将来使用，并在活跃的连接上通过active_connection_id_limit参数来宣布愿意存储的活跃ID数量。EndPoint**一定不要**提供过多的连接ID超过对端的限制，当EndPoint接收到超过通过active_connection_id_limit参数宣布的ID限制的连接ID时，**必须**用**CONNECTION_ID_LIMIT_ERROR**错误关闭这个连接。    
 当对端退出一个连接ID时，EndPoint必须提供一个新的连接ID，如果一个EndPoint提供的连接ID少于对端的活动连接ID限制，那么当它接收到一个带有以前未使用的连接ID的数据包时，它**可能**会提供一个新的连接ID。EndPoint可以限制为每个连接发出的连接ID的频率或总数，以避免连接ID用完的风险(请参阅第10.4.2节)。    
 启动连接迁移并需要non-zero-length连接ID的EndPoint应确保其对端可用的连接ID池允许在迁移时使用新的连接ID，因为如果池耗尽，对端将关闭连接。   
 
