@@ -446,4 +446,34 @@ EndPoint必须协商应用层协议，以避免使用的协议出现分歧。
 这里只提供一些实例，详细的TLS如何与QUIC集成在[QUIC-TLS](https://tools.ietf.org/html/draft-ietf-quic-tls-27)。第8.1.2节显示了支持客户端地址验证的扩展。    
 一旦交换地址验证完成，就可以使用加密握手来商定加密的密钥，加密握手数据被初始包(17.2.2节)和握手包(17.2.4节)携带。    
 图3提供了1-RTT握手的概述，每行显示一个QUIC包，首先显示包类型和包编号，然后是通常包含在这些包中的帧。因此，例如，第一个包是Initial类型，包编号为0，并且包含一个携带ClientHello的**CRYPTO**帧。    
-注意，多个QUIC数据包——即使是不同的加密级别——也可以合并成一个单独的UDP数据报(见第12.2节)，因此，这种握手可能只包含4个UDP数据报，或者更多。例如，服务器的第一次发送的数据包包含来自初始加密级别(模糊化)、握手级别的数据包，以及来自服务器的1-RTT加密级别的“0.5-RTT数据”。
+注意，多个QUIC数据包——即使是不同的加密级别——也可以合并成一个单独的UDP数据报(见第12.2节)，因此，这种握手可能只包含4个UDP数据报，或者更多。例如，服务器的第一次发送的数据包包含来自初始加密级别(模糊化)、握手级别的数据包，以及来自服务器的1-RTT加密级别的"0.5-RTT数据"。
+```
+Client                                                             Server
+Initial[0]: CRYPTO[CH] ->
+                                            Initial[0]: CRYPTO[SH] ACK[0]
+                                  Handshake[0]: CRYPTO[EE, CERT, CV, FIN]
+                                            <- 1-RTT[0]: STREAM[1, "..."]
+Initial[1]: ACK[0]
+Handshake[0]: CRYPTO[FIN], ACK[0]
+1-RTT[0]: STREAM[0, "..."], ACK[0] ->
+                                       1-RTT[1]: STREAM[3, "..."], ACK[0]
+                                                  <- Handshake[1]: ACK[0]
+                          图3: 1-RTT 握手示例
+```
+图4展示了一个具有0-RTT握手和一个0-RTT数据包的连接示例，请注意，如第12.3节所述，服务器在1-RTT加密级别确认0-RTT数据，而客户端在相同的包编号空间中发送1-RTT包。    
+```
+Client                                                             Server
+Initial[0]: CRYPTO[CH]
+0-RTT[0]: STREAM[0, "..."] ->
+                                            Initial[0]: CRYPTO[SH] ACK[0]
+                                             Handshake[0] CRYPTO[EE, FIN]
+                                     <- 1-RTT[0]: STREAM[1, "..."] ACK[0]
+Initial[1]: ACK[0]
+Handshake[0]: CRYPTO[FIN], ACK[0]
+1-RTT[1]: STREAM[0, "..."] ACK[0] ->
+                                       1-RTT[1]: STREAM[3, "..."], ACK[1]
+                                                  <- Handshake[1]: ACK[0]
+                          图4: 0-RTT 握手示例
+```
+
+## 7.2 协商连接ID
