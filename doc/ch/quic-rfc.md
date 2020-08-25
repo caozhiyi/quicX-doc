@@ -497,3 +497,27 @@ EndPoint必须将接收到无效的传输参数视为**TRANSPORT_PARAMETER_ERROR
 EndPoint禁止多次发送传输参数，EndPoint应将接收到的重复传输参数视为**TRANSPORT_PARAMETER_ERROR**连接错误。
 如第17.2.5节所述，如果服务器发送了一个重试包以启用重试验证，则必须包含**original_connection_id**传输参数(第18.2节)。
 ### 7.3.1 0-RTT的传输参数
+EndPoints需要存储服务器设置的传输参数的值，并将其设置到后续连接中发送到对端的任何0-RTT包中，但是设置了显示排除的参数除外。记录的传输参数将应用于新连接，直到握手完成客户端开始发送1-RTT包。一旦握手完成，客户端将使用握手中建立的传输参数。    
+定义一个新的传输参数(7.3.2节)时**一定要**指定其必须，可以，或者禁止应用于0-RTT包。客户端不需要存储其不能处理的参数参数。    
+客户端**禁止**存储以下参数：**original_connection_id**, **preferred_address**, **stateless_reset_token**,
+**ack_delay_exponent**，和**active_connection_id_limit**，客户端一定要使用握手中设置的最新传输参数的值，如果服务端没有指定，则只用默认值。    
+客户端尝试发送0-RTT包时**一定**要记录所有的服务器使用的传输参数，服务器可以记住这些传输参数，或者在上下文中存储完整的副本，并在接受0-RTT数据时恢复信息，服务器使用传输参数来确定是否接受0-RTT数据。    
+如果服务端接受0-RTT数据包，则服务端**禁止**减少限制或修改任何和客户端0-RTT包中冲突的参数值。特别是，接受0-RTT数据的服务器缩减以下参数值(见18.2节)：    
++ **initial_max_data**
++ **initial_max_stream_data_bidi_local**
++ **initial_max_stream_data_bidi_remote**
++ **initial_max_stream_data_uni**
++ **initial_max_streams_bidi**
++ **initial_max_streams_uni**    
+
+忽略或设置某些传输参数的为零会导致虽然启用0-RTT数据，但不可用。部分保证应用层数据发送的传输参数**应该**在0-RTT包中设置为非0值，这包括：    
++ **initial_max_data**
++ **initial_max_streams_bidi**
++ **initial_max_stream_data_bidi_remote**
++ **initial_max_streams_uni**
++ **initial_max_stream_data_uni**
+
+如果传输参数的值不受支持，服务器必须拒绝0-RTT数据或中止握手。    
+当使用0-RTT发送帧时，客户端**应该**只使用记录的传输参数，特别是，不要使用从接收到1-RTT包中获取到的新的传输参数值。来自握手的传输参数的更新值仅适用于1-RTT数据包。例如，存储的传输参数的流控制限制(旧的值)适用于所有0-RTT包，即使这些值通过握手或在1-RTT包中增加。服务器可能会将0-RTT中更新的传输参数的使用视为**PROTOCOL_VIOLATION**类型的连接错误。
+
+### 7.3.2 新的传输参数
