@@ -582,9 +582,21 @@ Initial+Token[1]: CRYPTO[CH] ->
 基于token的方案允许服务器将与验证相关的任何状态放到客户端。为了使这个设计有效，token必须保证完整性，以防止被客户端伪造和篡改。如果没有完整性保护，恶意的客户端可以生成或猜测服务器将接受token值。只有服务器需要访问token的完整性保护密钥。    
 并不需要为token定义明确的格式，因为只有生成它的服务器使用它。token可以包括有关所声明的客户端地址(IP和端口)信息、时间戳以及服务器将来验证token所需的任何其他补充信息。    
 
-## 路径验证
+## 8.2 路径验证
 EndPoint的地址迁移期间使用路径验证(参见第9节和第9.6节)，从新的地址验证对等机的可访问性。在路径验证中，EndPoint测试特定本地地址和特定对等地址之间的可达性，其中地址是IP地址和端口的两元组。    
 路径验证测试包(Path_CHALLENGE)可以发送到路径上的对等方，也可以从路径上的对等方接收(PATH_RESPONSE)。重要的是，它验证从迁移端点接收的数据包是否携带伪造的源地址。    
 任何EndPoint都可以随时使用路径验证。例如，EndPoint可能会检查对端在一段静止时间之后是否仍然拥有它的地址。    
 路径验证不是作为NAT遍历机制设计的。尽管这里描述的机制对于创建支持NAT遍历的NAT绑定可能是有效的, 但是有效的NAT遍历需要额外的同步机制，这里没有提供这些机制。    
 端点可以将用于路径验证的**PATH_CHALLENGE**和**PATH_RESPONSE**帧与其他帧捆绑在一起。具体地说，端点可以使PMTU发现填充包携带**PATH_CHALLENGE**，或者端点可以将**PATH_RESPONSE**与自己的**PATH_CHALLENGE**捆绑在一起。
+
+当探测新路径时，端点可能希望确保它的对端具有可用于响应的未使用的连接ID。Endpoint可以在相同的包中发送**NEW_CONNECTION_ID**，**PATH_CHALLENGE**帧，以确保对端有可使用的连接ID。
+## 8.3 启动路径验证 
+要启动路径验证，端点将发送一个**PATH_CHALLENGE**帧，其中包含要验证的路径上的随机负载。Endpoint可能要发送多个**PATH_CHALLENGE**帧来避免包丢失，但是Endpoint不应该将多个**PATH_CHALLENGE**帧放到同一个包中。Endpoint不发送**PATH_CHALLENGE**的频次不能比初始化包高，以确保连接迁移在新路径上的负载不会超过建立新连接的负载。    
+端点**必须**在每个**PATH_CHALLENGE**帧中使用不可预测的数据，以便它可以将对等方的响应与相应的**PATH_CHALLENGE**相关联。
+
+## 8.4 路径验证响应
+在接收到**PATH_CHALLENGE**帧时，Endpoint必须用**PATH_CHALLENGE**帧中的数据以**PATH_RESPONSE**帧响应。Endpoint在响应**PATH_CHALLENGE**帧时**不能**发送多个**PATH_RESPONSE**帧(见13.3节)。对端应根据需要发送更多的**PATH_CHALLENGE**帧，以引发额外的**PATH_RESPONSE**帧。    
+
+## 8.5 成功的路径验证
+当接收到包含在上一个**PATH_RESPONSE**中发送的数据的**PATH_CHALLENGE**时，新地址被视为有效。收到包含**PATH_CHALLENGE**帧包确认地址验证是不充分的，因为对端可能会恶意的伪造。    
+注意，不同本地地址的接收不会导致路径验证失败，因为这可能是转发包(见第9.3.3节)或错误路由的结果。将来可能会收到有效的**PATH_RESPONSE**响应。
