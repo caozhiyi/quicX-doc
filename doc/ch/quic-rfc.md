@@ -597,6 +597,8 @@ EndPoint的地址迁移期间使用路径验证(参见第9节和第9.6节)，从
 ## 8.4 路径验证响应
 在接收到**PATH_CHALLENGE**帧时，Endpoint必须用**PATH_CHALLENGE**帧中的数据以**PATH_RESPONSE**帧响应。Endpoint在响应**PATH_CHALLENGE**帧时**不能**发送多个**PATH_RESPONSE**帧(见13.3节)。对端应根据需要发送更多的**PATH_CHALLENGE**帧，以引发额外的**PATH_RESPONSE**帧。    
 
-## 8.5 成功的路径验证
+## 8.5 路径验证成功
 当接收到包含在上一个**PATH_RESPONSE**中发送的数据的**PATH_CHALLENGE**时，新地址被视为有效。收到包含**PATH_CHALLENGE**帧包确认地址验证是不充分的，因为对端可能会恶意的伪造。    
 注意，不同本地地址的接收不会导致路径验证失败，因为这可能是转发包(见第9.3.3节)或错误路由的结果。将来可能会收到有效的**PATH_RESPONSE**响应。
+
+## 8.6 地址验证失败
