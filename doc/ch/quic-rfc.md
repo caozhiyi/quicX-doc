@@ -1854,5 +1854,22 @@ Retire previor-To字段统计在连接设置过程中建立的连接ID和preferr
 
 如果Endpoint接收到的**NEW_CONNECTION_ID**帧中的“ sequence number”小于先前接收到**NEW_CONNECTION_ID**帧的“Retire Prior To”字段，则必须发送**RETIRE_CONNECTION_ID**来使新接收到的连接ID无效。
 
-### RETIRE_CONNECTION_ID帧
+###19.16 RETIRE_CONNECTION_ID帧
+Endpoint发送**RETIRE_CONNECTION_ID**帧来通知对端其不再使用某个其提供的连接ID。发送**RETIRE_CONNECTION_ID**帧也表示期望对端发送一些新的连接ID以供未来使用。新的连接标识可以使用**NEW_CONNECTION_ID**（第19.15节）传递给对方。    
+注销连接ID会使与该连接ID关联的无状态重置令牌无效。    
+**RETIRE_CONNECTION_ID**如图34所示：    
+```
+0                   1                   2                  3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      Sequence Number (i)                    ...
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+               图 34: RETIRE_CONNECTION_ID 帧格式
+```
+**RETIRE_CONNECTION_ID**帧包含以下字段：
++ Sequence Number:  被声明无效的连接ID，见5.1.2节。
+如果收到**RETIRE_CONNECTION_ID**帧包含的连接ID比先前通过**NEW_CONNECTION_ID**发送给对端的连接ID还大，则必须视为**FRAME_ENCODING_ERROR**连接错误。    
+如果端点的对等端提供了长度为零的连接ID，则它无法发送此帧。如果发送0长度连接ID的Endpoint接收到了**RETIRE_CONNECTION_ID**帧则必须视为**PROTOCOL_VIOLATION**连接错误。    
+
+### 19.17 PATH_CHALLENGE帧
