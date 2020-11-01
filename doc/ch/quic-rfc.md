@@ -2260,3 +2260,146 @@ IANA[应添加/已添加]在“QUIC”标题下的“QUIC传输错误代码”�
 ```
 
 ## 23 引用
+### 23.1 规范性引用文件
+```
+[DPLPMTUD] Fairhurst, G., Jones, T., Tuexen, M., Ruengeler, I., and
+           T. Voelker, "Packetization Layer Path MTU Discovery for
+           Datagram Transports", Work in Progress, Internet-Draft,
+           draft-ietf-tsvwg-datagram-plpmtud-08, 5 June 2019,
+           <http://www.ietf.org/internet-drafts/draft-ietf-tsvwg-
+           datagram-plpmtud-08.txt>.
+[IPv4]     Postel, J., "Internet Protocol", STD 5, RFC 791,
+           DOI 10.17487/RFC0791, September 1981,
+           <https://www.rfc-editor.org/info/rfc791>.
+[QUIC-RECOVERY]
+           Iyengar, J., Ed. and I. Swett, Ed., "QUIC Loss Detection
+           and Congestion Control", Work in Progress, Internet-Draft,
+           draft-ietf-quic-recovery-27, 21 February 2020,
+           <https://tools.ietf.org/html/draft-ietf-quic-recovery-27>.
+[QUIC-TLS] Thomson, M., Ed. and S. Turner, Ed., "Using Transport
+           Layer Security (TLS) to Secure QUIC", Work in Progress,
+           Internet-Draft, draft-ietf-quic-tls-27, 21 February 2020,
+           <https://tools.ietf.org/html/draft-ietf-quic-tls-27>.
+[RFC1191]  Mogul, J.C. and S.E. Deering, "Path MTU discovery",
+           RFC 1191, DOI 10.17487/RFC1191, November 1990,
+           <https://www.rfc-editor.org/info/rfc1191>.
+[RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+           Requirement Levels", BCP 14, RFC 2119,
+           DOI 10.17487/RFC2119, March 1997,
+           <https://www.rfc-editor.org/info/rfc2119>.
+[RFC3168]  Ramakrishnan, K., Floyd, S., and D. Black, "The Addition
+           of Explicit Congestion Notification (ECN) to IP",
+           RFC 3168, DOI 10.17487/RFC3168, September 2001,
+           <https://www.rfc-editor.org/info/rfc3168>.
+[RFC3629]  Yergeau, F., "UTF-8, a transformation format of ISO
+           10646", STD 63, RFC 3629, DOI 10.17487/RFC3629, November
+           2003, <https://www.rfc-editor.org/info/rfc3629>.
+[RFC4086]  Eastlake 3rd, D., Schiller, J., and S. Crocker,
+           "Randomness Requirements for Security", BCP 106, RFC 4086,
+           DOI 10.17487/RFC4086, June 2005,
+           <https://www.rfc-editor.org/info/rfc4086>.
+[RFC5116]  McGrew, D., "An Interface and Algorithms for Authenticated
+           Encryption", RFC 5116, DOI 10.17487/RFC5116, January 2008,
+           <https://www.rfc-editor.org/info/rfc5116>.
+[RFC6437]  Amante, S., Carpenter, B., Jiang, S., and J. Rajahalme,
+           "IPv6 Flow Label Specification", RFC 6437,
+           DOI 10.17487/RFC6437, November 2011,
+           <https://www.rfc-editor.org/info/rfc6437>.
+[RFC8085]  Eggert, L., Fairhurst, G., and G. Shepherd, "UDP Usage
+           Guidelines", BCP 145, RFC 8085, DOI 10.17487/RFC8085,
+           March 2017, <https://www.rfc-editor.org/info/rfc8085>.
+[RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
+           Writing an IANA Considerations Section in RFCs", BCP 26,
+           RFC 8126, DOI 10.17487/RFC8126, June 2017,
+           <https://www.rfc-editor.org/info/rfc8126>.
+[RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+           2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+           May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+[RFC8201]  McCann, J., Deering, S., Mogul, J., and R. Hinden, Ed.,
+           "Path MTU Discovery for IP version 6", STD 87, RFC 8201,
+           DOI 10.17487/RFC8201, July 2017,
+           <https://www.rfc-editor.org/info/rfc8201>.
+[RFC8311]  Black, D., "Relaxing Restrictions on Explicit Congestion
+           Notification (ECN) Experimentation", RFC 8311,
+           DOI 10.17487/RFC8311, January 2018,
+           <https://www.rfc-editor.org/info/rfc8311>.
+[TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
+           Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+           <https://www.rfc-editor.org/info/rfc8446>.
+ ```
+### 23.2 资料性引用
+```
+[EARLY-DESIGN]
+           Roskind, J., "QUIC: Multiplexed Transport Over UDP", 2
+           December 2013, <https://goo.gl/dMVtFi>.
+           [HTTP2] Belshe, M., Peon, R., and M. Thomson, Ed., "Hypertext
+           Transfer Protocol Version 2 (HTTP/2)", RFC 7540,
+           DOI 10.17487/RFC7540, May 2015,
+           <https://www.rfc-editor.org/info/rfc7540>.
+[QUIC-INVARIANTS]
+           Thomson, M., "Version-Independent Properties of QUIC",
+           Work in Progress, Internet-Draft, draft-ietf-quic-
+           invariants-07, 21 February 2020,
+           <https://tools.ietf.org/html/draft-ietf-quic-invariants-
+           07>.
+[QUIC-MANAGEABILITY]
+           Kuehlewind, M. and B. Trammell, "Manageability of the QUIC
+           Transport Protocol", Work in Progress, Internet-Draft,
+           draft-ietf-quic-manageability-05, 5 July 2019,
+           <http://www.ietf.org/internet-drafts/draft-ietf-quic-
+           manageability-05.txt>.
+[RFC1812]  Baker, F., Ed., "Requirements for IP Version 4 Routers",
+           RFC 1812, DOI 10.17487/RFC1812, June 1995,
+           <https://www.rfc-editor.org/info/rfc1812>.
+[RFC2018]  Mathis, M., Mahdavi, J., Floyd, S., and A. Romanow, "TCP
+           Selective Acknowledgment Options", RFC 2018,
+           DOI 10.17487/RFC2018, October 1996,
+           <https://www.rfc-editor.org/info/rfc2018>.
+[RFC2104]  Krawczyk, H., Bellare, M., and R. Canetti, "HMAC: Keyed-
+           Hashing for Message Authentication", RFC 2104,
+           DOI 10.17487/RFC2104, February 1997,
+           <https://www.rfc-editor.org/info/rfc2104>.
+[RFC2360]  Scott, G., "Guide for Internet Standards Writers", BCP 22,
+           RFC 2360, DOI 10.17487/RFC2360, June 1998,
+           <https://www.rfc-editor.org/info/rfc2360>.
+[RFC4303]  Kent, S., "IP Encapsulating Security Payload (ESP)",
+           RFC 4303, DOI 10.17487/RFC4303, December 2005,
+           <https://www.rfc-editor.org/info/rfc4303>.
+[RFC4443]  Conta, A., Deering, S., and M. Gupta, Ed., "Internet
+           Control Message Protocol (ICMPv6) for the Internet
+           Protocol Version 6 (IPv6) Specification", STD 89,
+           RFC 4443, DOI 10.17487/RFC4443, March 2006,
+           <https://www.rfc-editor.org/info/rfc4443>.
+[RFC4787]  Audet, F., Ed. and C. Jennings, "Network Address
+           Translation (NAT) Behavioral Requirements for Unicast
+           UDP", BCP 127, RFC 4787, DOI 10.17487/RFC4787, January
+           2007, <https://www.rfc-editor.org/info/rfc4787>. 
+           [RFC5681] Allman, M., Paxson, V., and E. Blanton, "TCP Congestion
+           Control", RFC 5681, DOI 10.17487/RFC5681, September 2009,
+           <https://www.rfc-editor.org/info/rfc5681>.
+[RFC5869]  Krawczyk, H. and P. Eronen, "HMAC-based Extract-and-Expand
+           Key Derivation Function (HKDF)", RFC 5869,
+           DOI 10.17487/RFC5869, May 2010,
+           <https://www.rfc-editor.org/info/rfc5869>.
+[RFC7301]  Friedl, S., Popov, A., Langley, A., and E. Stephan,
+           "Transport Layer Security (TLS) Application-Layer Protocol
+           Negotiation Extension", RFC 7301, DOI 10.17487/RFC7301,
+           July 2014, <https://www.rfc-editor.org/info/rfc7301>.
+[RFC8200]  Deering, S. and R. Hinden, "Internet Protocol, Version 6
+           (IPv6) Specification", STD 86, RFC 8200,
+           DOI 10.17487/RFC8200, July 2017,
+           <https://www.rfc-editor.org/info/rfc8200>.
+[SEC-CONS] Rescorla, E. and B. Korver, "Guidelines for Writing RFC
+           Text on Security Considerations", BCP 72, RFC 3552,
+           DOI 10.17487/RFC3552, July 2003,
+           <https://www.rfc-editor.org/info/rfc3552>.
+[SLOWLORIS]
+           RSnake Hansen, R., "Welcome to Slowloris...", June 2009,
+           <https://web.archive.org/web/20150315054838/
+           http://ha.ckers.org/slowloris/>.
+[STD]      Bradner, S., "The Internet Standards Process -- Revision
+           3", BCP 9, RFC 2026, DOI 10.17487/RFC2026, October 1996,
+           <https://www.rfc-editor.org/info/rfc2026>.
+```
+## 附录
+。。。
