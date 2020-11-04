@@ -121,7 +121,7 @@ TLS记录（与TCP一起使用）和QUIC **CRYPTO**帧之间的一个重要区�
 + QUIC层（0x1c类型）的**CRYPTO**帧和标识QUIC层错误的**CONNECTION_CLOSE**帧（类型0x1c）能出现在除0-RTT之外的任何加密级别的数据包中。
 + 标识应用程序错误的**CONNECTION_CLOSE**帧（类型0x1d）只能在1-RTT加密级别的数据包中发送。
 + **ACK**帧可以出现在0-RTT以外的任何加密级别的分组中，但是只能确认出现在该分组号空间中的分组。
-+ 所有其他帧类型只能以0-RTT和1-RTT级别发送。
++ 所有其他帧类型只能以0-RTT和1-RTT级别发送。     
 请注意，由于各种原因，无法在0-RTT中发送以下帧：**ACK**、**CRYPTO**、**HANDSHAKE_DONE**、**NEW_TOKEN**、**PATH_RESPONSE**和**RETIRE_CONNECTION_ID**。    
 因为数据包可以在网络上重新排序，QUIC使用数据包类型来指示给定数据包的加密级别，如表1所示。当需要发送多个不同加密级别的数据包时，Endpoint应该使用合并的数据包在同一个UDP数据报中发送它们。
 ```
