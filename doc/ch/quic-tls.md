@@ -191,3 +191,60 @@ TLS为QUIC提供了三项新的加密级别：
 QUIC还需要访问TLS实现通常不可用的密钥。例如，客户端可能需要在准备发送加密级别的**CRYPTO**帧之前确认握手包。因此，TLS需要为QUIC提供密钥，然后才能为自己的用途生成密钥。
 
 #### 4.1.5 TLS接口摘要
+图5总结了客户机和服务器的QUIC和TLS之间的交换。每个箭头都标记有用于该传输的加密级别。
+```
+   Client                                                    Server
+
+   Get Handshake
+                        Initial ------------->
+                                                 Handshake Received
+   Install tx 0-RTT Keys
+                        0-RTT --------------->
+                                                      Get Handshake
+                        <------------- Initial
+   Handshake Received
+   Install Handshake keys
+                                              Install rx 0-RTT keys
+                                             Install Handshake keys
+                                                      Get Handshake
+                        <----------- Handshake
+   Handshake Received
+                                              Install tx 1-RTT keys
+                        <--------------- 1-RTT
+   Get Handshake
+   Handshake Complete
+                        Handshake ----------->
+                                                 Handshake Received
+                                              Install rx 1-RTT keys
+                                                 Handshake Complete
+   Install 1-RTT keys
+                        1-RTT --------------->
+                                                      Get Handshake
+                        <--------------- 1-RTT
+   Handshake Received
+
+                      Figure 5: QUIC与TLS的交互
+```
+图5显示了构成单独处理的消息的单个“飞行”的多个包，以显示哪些传入消息触发不同的操作。在处理完所有传入数据包后，将请求新的握手消息。这个过程可能会有所不同，这取决于QUIC实现和它们接收到的包的结构。
+
+### 4.2 TLS版本
+本文档描述了TLS 1.3[TLS13]如何与QUIC一起使用。    
+实际上，TLS握手将协商要使用的TLS版本。如果两个端点都支持1.3版本，这可能会导致协商一个比1.3更新的TLS版本。如果QUIC使用的tls1.3特性得到更新版本的支持，这是可以接受的。    
+配置错误的TLS实现可以协商tls1.2或其他旧版本的TLS。如果协商的TLS版本早于1.3，则Endpoint**必须**终止连接。
+
+### 4.3 ClientHello大小
+来自客户端的第一个初始数据包包含其第一个加密握手消息的开始或全部，对于TLS来说是"ClientHello"。服务器可能需要解析整个"ClientHello"（例如，访问服务器名称标识（SNI）或应用层协议协商（ALPN））等扩展，以决定是否接受新的传入QUIC连接。如果"ClientHello"跨越多个初始数据包，这样服务器就需要缓冲第一个接收到的片段，如果客户端的地址还没有被验证，这可能会消耗过多的资源。为了避免这种情况，服务器可以使用重试功能（参见[QUIC-TRANSPORT]的第8.1节），只缓冲来自具有验证地址的客户端的部分"ClientHello"消息。    
+QUIC包和帧为"ClientHello"消息增加了至少36字节的开销。如果客户机选择长度不为零的连接ID，则开销会增加。开销也不包括Token或长度超过8字节的连接ID，如果服务器发送重试包，则可能需要这两个字节。    
+典型的TLS "ClientHello"可以很容易地放入1200字节的数据包中。然而，除了QUIC增加的管理开销外，还有几个变量可能导致超出此限制。大session 凭证、多个或大共享密钥、受支持密码的长列表、签名算法、版本、QUIC传输参数和其他可协商参数和扩展可能导致此消息增长。对于服务器，除了连接ID和Token外，TLS session凭证的大小也会影响客户端高效连接的能力。最小化这些值的大小会增加客户端可以使用它们的概率，并且仍然将"ClientHello"消息放入第一个初始包中。   
+TLS实现不需要确保"ClientHello"足够大。添加QUIC **PADDING**帧就可以以根据需要增加数据包的大小。 
+
+### 4.4 对等身份验证
+身份验证的要求取决于所使用的应用程序协议。TLS提供服务器身份验证并允许服务器请求客户端身份验证。  
+端户机必须验证服务器的身份。这通常涉及到验证服务器的身份是否包含在证书中，以及证书是否由受信任的实体颁发（例如请参见[RFC2818]）。在握手过程中，服务器可以请求客户端进行身份验证。如果客户端在请求时无法进行身份验证，则服务器可能会拒绝连接。客户机身份验证的要求因应用程序协议和部署而异。    
+服务器不能使用握手后的客户端身份验证（如[TLS13]第4.6.2节所定义），因为QUIC提供的多路复用阻止客户端将证书请求与触发该请求的应用程序级事件相关联（参见[HTTP2-TLS13]）。更具体地说，服务器不能发送握手后的TLS "CertificateRequest"消息，客户端必须将接收到的此类消息视为**PROTOCOL_VIOLATION**类型的连接错误。
+
+### 4.5 启用0-RTT
+为了表达他们处理0-RTT数据的意愿，服务器发送一条NewSessionTicket消息，其中包含“early_data”扩展名，max_early_data_size为0xffffffff；客户端可以在0-RTT中发送的数据量由服务器提供的“initial_max_data”传输参数控制。服务器在发送“early_data”扩展时，不能将max_early_data_size设置为0xffffffff以外的任何值。客户机必须将接收到的包含“early_data”扩展名和任何其他值的"NewSessionTicket"视为**PROTOCOL_VIOLATION**类型的连接错误。   
+希望发送0-RTT数据包的客户端在随后握手的"ClientHello"消息中使用“early_data”扩展（见[TLS13]的4.2.10节）。然后它以0-RTT包的形式发送应用程序数据。
+
+### 4.6 接受和拒绝0-RTT
