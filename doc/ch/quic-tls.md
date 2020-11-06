@@ -111,7 +111,7 @@ QUIC还依赖TLS来验证和协商对安全性和性能至关重要的参数。�
 
                     图 4: QUIC 和 TLS 交互
 ```
-与TCP上的TLS不同，要发送数据的QUIC应用程序不会通过TLS“application_data”记录发送数据。相反，它们将其作为QUIC**STREAM**帧或其他帧类型发送，然后在QUIC包中进行传输。
+与TCP上的TLS不同，要发送数据的QUIC应用程序不会通过TLS"application_data"记录发送数据。相反，它们将其作为QUIC**STREAM**帧或其他帧类型发送，然后在QUIC包中进行传输。
 
 ## 4 携带TLS信息
 QUIC以**CRYPTO**帧的形式传输TLS握手数据，每个帧由一个由偏移量和长度标识的连续握手数据块组成。这些帧被打包成QUIC包，并在当前TLS加密级别下进行加密。与TCP上的TLS一样，一旦TLS数据被传递到QUIC，QUIC就有责任可靠地传递它。TLS生成的每个数据块都与TLS当前使用的密钥集相关联。如果QUIC需要重新传输数据，它必须使用相同的密钥，即使TLS已经更新为新的密钥。    
@@ -120,7 +120,7 @@ TLS记录（与TCP一起使用）和QUIC **CRYPTO**帧之间的一个重要区�
 + **PADDING**和**PING**帧**可以**出现在任何加密级别的包中。
 + QUIC层（0x1c类型）的**CRYPTO**帧和标识QUIC层错误的**CONNECTION_CLOSE**帧（类型0x1c）能出现在除0-RTT之外的任何加密级别的数据包中。
 + 标识应用程序错误的**CONNECTION_CLOSE**帧（类型0x1d）只能在1-RTT加密级别的数据包中发送。
-+ **ACK**帧可以出现在0-RTT以外的任何加密级别的分组中，但是只能确认出现在该分组号空间中的分组。
++ **ACK**帧可以出现在0-RTT以外的任何加密级别的数据包中，但是只能确认出现在该数据包号空间中的数据包。
 + 所有其他帧类型只能以0-RTT和1-RTT级别发送。  
 
 请注意，由于各种原因，无法在0-RTT中发送以下帧：**ACK**、**CRYPTO**、**HANDSHAKE_DONE**、**NEW_TOKEN**、**PATH_RESPONSE**和**RETIRE_CONNECTION_ID**。    
@@ -159,7 +159,7 @@ TLS记录（与TCP一起使用）和QUIC **CRYPTO**帧之间的一个重要区�
 
 #### 4.1.2 握手确认
 在本文中，TLS握手在握手完成时被认为是在服务器上确认的。在客户端，当接收到**HANDSHAKE_DONE**帧时，握手被认为是确认的。    
-当客户端接收到对1-RTT分组的确认时，**可以**考虑确认握手。这可以通过记录用1-RTT密钥发送的最低分组号来实现，并将其与任何接收到的1-RTT ACK帧中的最大确认字段进行比较：一旦后者大于或等于前者，则确认握手。    
+当客户端接收到对1-RTT数据包的确认时，**可以**考虑确认握手。这可以通过记录用1-RTT密钥发送的最低数据包号来实现，并将其与任何接收到的1-RTT ACK帧中的最大确认字段进行比较：一旦后者大于或等于前者，则确认握手。    
 
 #### 4.1.3 发送和接收握手消息
 为了驱动握手，TLS依赖于能够发送和接收握手消息。这个接口有两个基本功能：一个是QUIC请求握手消息，另一个是QUIC提供握手包。    
@@ -225,7 +225,7 @@ QUIC还需要访问TLS实现通常不可用的密钥。例如，客户端可能�
 
                       Figure 5: QUIC与TLS的交互
 ```
-图5显示了构成单独处理的消息的单个“飞行”的多个包，以显示哪些传入消息触发不同的操作。在处理完所有传入数据包后，将请求新的握手消息。这个过程可能会有所不同，这取决于QUIC实现和它们接收到的包的结构。
+图5显示了构成单独处理的消息的单个"飞行"的多个包，以显示哪些传入消息触发不同的操作。在处理完所有传入数据包后，将请求新的握手消息。这个过程可能会有所不同，这取决于QUIC实现和它们接收到的包的结构。
 
 ### 4.2 TLS版本
 本文档描述了TLS 1.3[TLS13]如何与QUIC一起使用。    
@@ -244,8 +244,8 @@ TLS实现不需要确保"ClientHello"足够大。添加QUIC **PADDING**帧就可
 服务器不能使用握手后的客户端身份验证（如[TLS13]第4.6.2节所定义），因为QUIC提供的多路复用阻止客户端将证书请求与触发该请求的应用程序级事件相关联（参见[HTTP2-TLS13]）。更具体地说，服务器不能发送握手后的TLS "CertificateRequest"消息，客户端必须将接收到的此类消息视为**PROTOCOL_VIOLATION**类型的连接错误。
 
 ### 4.5 启用0-RTT
-为了表达他们处理0-RTT数据的意愿，服务器发送一条NewSessionTicket消息，其中包含“early_data”扩展名，max_early_data_size为0xffffffff；客户端可以在0-RTT中发送的数据量由服务器提供的“initial_max_data”传输参数控制。服务器在发送“early_data”扩展时，不能将max_early_data_size设置为0xffffffff以外的任何值。客户机必须将接收到的包含“early_data”扩展名和任何其他值的"NewSessionTicket"视为**PROTOCOL_VIOLATION**类型的连接错误。   
-希望发送0-RTT数据包的客户端在随后握手的"ClientHello"消息中使用“early_data”扩展（见[TLS13]的4.2.10节）。然后它以0-RTT包的形式发送应用程序数据。
+为了表达他们处理0-RTT数据的意愿，服务器发送一条NewSessionTicket消息，其中包含"early_data"扩展名，max_early_data_size为0xffffffff；客户端可以在0-RTT中发送的数据量由服务器提供的"initial_max_data"传输参数控制。服务器在发送"early_data"扩展时，不能将max_early_data_size设置为0xffffffff以外的任何值。客户机必须将接收到的包含"early_data"扩展名和任何其他值的"NewSessionTicket"视为**PROTOCOL_VIOLATION**类型的连接错误。   
+希望发送0-RTT数据包的客户端在随后握手的"ClientHello"消息中使用"early_data"扩展（见[TLS13]的4.2.10节）。然后它以0-RTT包的形式发送应用程序数据。
 
 ### 4.6 接受和拒绝0-RTT
 服务器通过发送"EncryptedExtensions"中的"early_data"扩展来接受0-RTT（参见[TLS13]的4.2.10节）。然后，服务器处理并确认它接收到的0-RTT包。服务器通过发送不带"early_data"扩展名的"EncryptedExtensions"拒绝0-RTT。如果服务器发送TLS "HelloRetryRequest"，它将始终拒绝0-RTT。拒绝0-RTT后，服务器不能处理任何0-RTT数据包，即使具备处理能力。当0-RTT被拒绝后，如果客户端能够检测到这种情况，则应将收到的0-RTT数据包确认视为**PROTOCOL_VIOLATION**类型的连接错误。   
@@ -254,16 +254,16 @@ TLS实现不需要确保"ClientHello"足够大。添加QUIC **PADDING**帧就可
 如果客户端收到重试或版本协商包，则可能会尝试再次发送0-RTT。这些数据包并不表示拒绝0-RTT。
 
 ### 4.7 验证0-RTT配置
-当服务器接收到带有“early_data”扩展的"ClientHello"时，它必须决定是接受还是拒绝来自客户端的早期数据。有些决定是由TLS协议栈做出的（例如，检查正在恢复的密码套件是否包含在ClientHello中；参见[TLS13]第4.2.10节）。即使TLS协议栈没有理由拒绝早期数据，QUIC协议或使用QUIC的应用程序协议可能会拒绝早期数据，因为与恢复会话相关联的传输或应用程序配置与服务器的当前配置不兼容。   
+当服务器接收到带有"early_data"扩展的"ClientHello"时，它必须决定是接受还是拒绝来自客户端的早期数据。有些决定是由TLS协议栈做出的（例如，检查正在恢复的密码套件是否包含在ClientHello中；参见[TLS13]第4.2.10节）。即使TLS协议栈没有理由拒绝早期数据，QUIC协议或使用QUIC的应用程序协议可能会拒绝早期数据，因为与恢复会话相关联的传输或应用程序配置与服务器的当前配置不兼容。   
 QUIC要求附加的传输状态与0-RTT会话凭证相关联。实现这一点的一种常见方法是使用无状态会话凭证并将此状态存储在会话凭证中。使用QUIC的应用程序协议在关联或存储状态方面可能有类似的要求。此关联状态用于决定是否必须拒绝早期数据。例如，HTTP/3（[QUIC-HTTP]）设置决定如何解释来自客户端的早期数据。使用QUIC的其他应用程序在确定是否接受或拒绝早期数据时可能有不同的要求。
 
 ### 4.8 HelloRetryRequest
-在TCP上的TLS中，"HelloRetryRequest"特性（见[TLS13]的4.1.4节）可用于纠正客户机不正确的”KeyShare“扩展以及无状态的往返检查。从QUIC的角度来看，这看起来就像初始加密级别中携带的附加消息。虽然原则上可以在QUIC中使用此功能进行地址验证，但是QUIC实现应该使用重试功能（参见[QUIC-TRANSPORT]的第8.1节）。"HelloRetryRequest"仍然用于请求共享。
+在TCP上的TLS中，"HelloRetryRequest"特性（见[TLS13]的4.1.4节）可用于纠正客户机不正确的"KeyShare"扩展以及无状态的往返检查。从QUIC的角度来看，这看起来就像初始加密级别中携带的附加消息。虽然原则上可以在QUIC中使用此功能进行地址验证，但是QUIC实现应该使用重试功能（参见[QUIC-TRANSPORT]的第8.1节）。"HelloRetryRequest"仍然用于请求共享。
 
 ### 4.9 TLS错误
 如果TLS遇到错误，它会生成[TLS13]第6节中定义的适当警报。   
 通过将单字节警报描述转换为QUIC错误码，TLS警报将转变为QUIC连接错误。警报描述被添加到0x100中，以在为**CRYPTO_ERROR**保留的范围内生成QUIC错误代码。结果值在QUIC **CONNECTION_CLOSE**帧中发送。   
-所有TLS警报的警报级别均为“fatal”；TLS堆栈不得生成“warning”级别的警报。
+所有TLS警报的警报级别均为"fatal"；TLS堆栈不得生成"warning"级别的警报。
 
 ### 4.10 丢弃未使用的密钥
 QUIC移动到新的加密级别后，以前加密级别的数据包保护密钥可以被丢弃。这种情况在握手过程中以及密钥更新时会发生多次；请参阅第6节。   
@@ -288,9 +288,9 @@ QUIC移动到新的加密级别后，以前加密级别的数据包保护密钥�
 
 ### 5.1 数据包保护密钥
 QUIC派生包保护密钥的方式与TLS导出记录保护密钥的方式相同。这些流量加密由TLS导出（见[TLS13]第7.1节），QUIC将其用于除初始加密级别之外的所有加密级别。初始加密级别的密钥根据客户端的初始目标连接ID计算，如第5.2节所述。   
-用于包保护的密钥是使用TLS提供的KDF从TLS机密中计算出来的。在TLS 1.3中，使用了[TLS13]第7.1节中描述的“HKDF Expand Label”函数，使用协商密码套件中的哈希函数。   
-当前的加密级别机密和标签“quic key”被输入到KDF以生成AEAD密钥；标签“quic iv”用于派生IV；参见第5.3节。包头保护钥匙使用“quic hp”标签；见第5.4节。使用这些标签可以在QUIC和TLS之间进行密钥分隔；参见第9.5节。   
-用于初始机密的KDF始终是tls1.3中的“HKDF Expand Label”函数（见第5.2节）。   
+用于包保护的密钥是使用TLS提供的KDF从TLS机密中计算出来的。在TLS 1.3中，使用了[TLS13]第7.1节中描述的"HKDF Expand Label"函数，使用协商密码套件中的哈希函数。   
+当前的加密级别机密和标签"quic key"被输入到KDF以生成AEAD密钥；标签"quic iv"用于派生IV；参见第5.3节。包头保护钥匙使用"quic hp"标签；见第5.4节。使用这些标签可以在QUIC和TLS之间进行密钥分隔；参见第9.5节。   
+用于初始机密的KDF始终是tls1.3中的"HKDF Expand Label"函数（见第5.2节）。   
 
 ### 5.2 初始加密
 初始数据包使用从客户端的初始数据包的目标连接ID字段派生的机密进行保护。具体如下：
@@ -309,7 +309,7 @@ initial_salt = 0xc3eef712c72ebb5a11a7d2432bb46365bef9f502
 当派生初始机密和密钥时，HKDF的哈希函数是SHA-256[SHA]。   
 与HKDF Expand Label一起使用的连接ID是客户端发送的初始数据包中的目标连接ID。这将是一个随机选择的值，除非客户端在接收到重试数据包后创建初始数据包，其中目标连接ID由服务器选择。   
 initial_salt的值是图中以十六进制表示的20字节序列。未来版本的QUIC应该生成一个新的salt值，从而确保每个版本的QUIC的键都是不同的。这可以防止只识别一个QUIC版本的中间设备查看或修改将来版本的包的内容。   
-TLS 1.3中定义的“HKDF Expand Label”函数必须用于初始数据包，即使提供的TLS版本不包括TLS 1.3。   
+TLS 1.3中定义的"HKDF Expand Label"函数必须用于初始数据包，即使提供的TLS版本不包括TLS 1.3。   
 当服务器发送重试数据包以使用服务器选择的连接ID值时，用于保护初始数据包的机密会发生更改。当客户端响应来自服务器的初始数据包而更改其使用的目标连接ID时，密钥不会更改。   
 注意：目标连接ID的长度是任意的，如果服务器发送的重试数据包的源连接ID字段为零，则长度可能为零。在这种情况下，初始密钥不向客户端保证服务器已收到其数据包；客户端必须依赖包含该属性的重试数据包的交换。
 
@@ -319,21 +319,21 @@ TLS 1.3中定义的“HKDF Expand Label”函数必须用于初始数据包，�
 除版本协商和重试数据包之外的所有QUIC数据包都使用AEAD算法[AEAD]进行保护。在建立共享密钥之前，数据包由AEAD_AES_128_GCM和从客户端第一个初始数据包中的目标连接ID派生的密钥进行保护（见第5.2节）。这提供了针对非路径攻击者的保护，并针对QUIC版本不知道的中间盒提供了健壮性，但不针对路径上的攻击者。   
 QUIC可以使用[TLS13]中定义的任何密码套件，TLS_AES_128_CCM_8_SHA256除外。除非为密码套件定义了标头保护方案，否则不得协商密码套件。本文件为[TLS13]中定义的除TLS_AES_128_CCM_8_SHA256之外的所有密码套件定义了一个头保护方案。这些密码集具有16字节的身份验证标记，并产生比输入大16字节的输出。   
 注意：端点不能拒绝提供它不支持的密码套件的"ClientHello"，否则将无法部署新的密码套件。这也适用于TLS_AES_128_CCM_8_SHA256。   
-如第5.1节所述，计算包的密钥和IV。所有的密钥由分组保护IV与分组号组合而成。以网络字节顺序重建的QUIC数据包编号的62位用0填充到IV的大小。填充包编号和IV的异或构成AEAD。   
-AEAD的相关数据A是QUIC报头的内容，从短或长报头中的标志字节开始，直到并包括未受保护的数据包编号。   
+如第5.1节所述，计算包的密钥和IV。所有的密钥由数据包保护IV与数据包号组合而成。以网络字节顺序重建的QUIC数据包编号的62位用0填充到IV的大小。填充包编号和IV的异或构成AEAD。   
+AEAD的相关数据A是QUIC包头的内容，从短或长包头中的标志字节开始，直到并包括未受保护的数据包编号。   
 AEAD的输入明文P是QUIC包的有效载荷，如[QUIC-TRANSPORT]中所述。AEAD的输出密文C代替P传输。    
 一些AEAD函数对相同密钥和IV下可以加密的数据包数量有限制（例如，请参见[AEBounds]）。这可能低于包数限制。端点必须在超过为正在使用的AEAD设置的任何限制之前启动密钥更新（第6节）。
 
 ### 5.4 包头保护
-QUIC包头的部分，特别是包号字段，使用独立于包保护密钥和IV的密钥来保护。使用“quic hp”标签派生的密钥用于为那些不暴露于on-path元素的字段提供机密性保护。   
-此保护适用于第一个字节的最低有效位，加上数据包编号字段。第一字节的四个最小有效位为具有长包头的数据包提供保护；对于短包头的数据包，保护第一字节的五个最小有效位。对于这两种包头的形式，包括保留位和包号长度字段；“Key Phase”位也为具有短包头的数据包提供保护。   
+QUIC包头的部分，特别是包号字段，使用独立于包保护密钥和IV的密钥来保护。使用"quic hp"标签派生的密钥用于为那些不暴露于on-path元素的字段提供机密性保护。   
+此保护适用于第一个字节的最低有效位，加上数据包编号字段。第一字节的四个最小有效位为具有长包头的数据包提供保护；对于短包头的数据包，保护第一字节的五个最小有效位。对于这两种包头的形式，包括保留位和包号长度字段；"Key Phase"位也为具有短包头的数据包提供保护。   
 在连接期间使用相同的头保护密钥，在密钥更新后该值不变（见第6节）。这允许头保护被用来保护关键阶段。   
 此过程不适用于重试或版本协商数据包，这些数据包不包含受保护的有效负载或任何字段。
 
 ### 5.4.1 应用头保护
 在应用数据包保护后应用包头保护（见第5.3节）。对数据包的密文进行采样并作为加密算法的输入。使用的算法取决于协商的AEAD。   
 该算法的输出是一个5字节掩码，它使用异或应用于受保护的头字段。包的第一个字节的最低有效位被第一个掩码字节的最低有效位屏蔽，包号用剩余字节屏蔽。任何可能由较短的数据包编号编码产生的未使用的掩码字节都不使用。   
-图6显示了应用头保护的示例算法。移除报头保护只在分组号长度（pn_length）的确定顺序上有所不同。
+图6显示了应用头保护的示例算法。移除包头保护只在数据包号长度（pn_length）的确定顺序上有所不同。
 ```
    mask = header_protection(hp_key, sample)
 
@@ -379,13 +379,13 @@ QUIC包头的部分，特别是包号字段，使用独立于包保护密钥和I
 
                     图 7: 包头保护和密文样本
 ```
-在TLS密码套件可以与QUIC一起使用之前，必须为与该密码套件一起使用的AEAD指定标头保护算法。本文件定义了AEAD_AES_128_GCM、AEAD_AES_128_GCM、AEAD_AES_256_GCM（所有AES AEAD定义在[AEAD]）和AEAD_CHACHA20_POLY1305[chachacha]的算法。在TLS选择密码套件之前，使用AES报头保护（第5.4.3节），匹配AEAD_AES_128_GCM包保护。
+在TLS密码套件可以与QUIC一起使用之前，必须为与该密码套件一起使用的AEAD指定标头保护算法。本文件定义了AEAD_AES_128_GCM、AEAD_AES_128_GCM、AEAD_AES_256_GCM（所有AES AEAD定义在[AEAD]）和AEAD_CHACHA20_POLY1305[chachacha]的算法。在TLS选择密码套件之前，使用AES包头保护（第5.4.3节），匹配AEAD_AES_128_GCM包保护。
 
 ### 5.4.2 包头保护示例
-报头保护算法同时使用包头保护密钥和来自包有效载荷字段的密文样本。   
+包头保护算法同时使用包头保护密钥和来自包有效载荷字段的密文样本。   
 对相同数量的字节进行采样，但是需要为Endpoint移除保护留出一个余量，因为Endpoint移除保护将不知道包编号字段的长度。在对包密文进行采样时，假设包编号字段为4字节长（其最大可能编码长度）。   
 端点必须丢弃长度不足以包含完整样本的数据包。   
-为了确保有足够的数据可用于采样，对包进行填充，使得编码的包编号和受保护的有效载荷的组合长度至少比包头保护所需的样本长4个字节。[TLS13]中定义的密码套件（TLS_AES_128_CCM_8_SHA256除外，本文档中未定义头保护方案）具有16字节扩展和16字节头保护示例。这导致在未保护的有效负载中需要至少3字节的帧（如果包编号是在单字节上编码的），或者对于2字节的分组号编码，则需要2字节的帧。
+为了确保有足够的数据可用于采样，对包进行填充，使得编码的包编号和受保护的有效载荷的组合长度至少比包头保护所需的样本长4个字节。[TLS13]中定义的密码套件（TLS_AES_128_CCM_8_SHA256除外，本文档中未定义头保护方案）具有16字节扩展和16字节头保护示例。这导致在未保护的有效负载中需要至少3字节的帧（如果包编号是在单字节上编码的），或者对于2字节的数据包号编码，则需要2字节的帧。
 具有短包头的包的抽样密文可由以下伪码确定：  
 ```
 sample_offset = 1 + len(connection_id) + 4
@@ -411,10 +411,10 @@ sample = packet[sample_offset..sample_offset+sample_length]
 mask = AES-ECB(hp_key, sample)
 ```
 
-### 5.4.4 基于ChaCha20的报头保护
+### 5.4.4 基于ChaCha20的包头保护
 使用AEAD_CHACHA20_POLY1305时，头保护使用[CHACHA]第2.4节中定义的原始CHACHA20功能。这使用一个256位的密钥和从包保护输出中取样的16个字节。   
-采样密文的前4个字节是块计数器。ChaCha20实现可以用32位整数代替字节序列，在这种情况下，字节序列被解释为一个“little-endian”值。   
-剩下的12个字节用作”nonce“。一个ChaCha20实现可以用一个由三个32位整数组成的数组来代替一个字节序列，在这种情况下，“nonce”字节被解释为一个32位低位整数序列。   
+采样密文的前4个字节是块计数器。ChaCha20实现可以用32位整数代替字节序列，在这种情况下，字节序列被解释为一个"little-endian"值。   
+剩下的12个字节用作"nonce"。一个ChaCha20实现可以用一个由三个32位整数组成的数组来代替一个字节序列，在这种情况下，"nonce"字节被解释为一个32位低位整数序列。   
 加密掩码是通过调用ChaCha20来保护5个零字节来生成的。在伪代码中：
 ```
 counter = sample[0..3]
@@ -442,16 +442,16 @@ mask = ChaCha20(hp_key, counter, nonce, {0,0,0,0,0})
 
 因此，服务器对1-RTT密钥的使用必须限于在握手完成之前发送数据。在TLS握手完成之前，服务器**不得**处理传入的受1-RTT保护的数据包。因为发送确认表示一个包中的所有帧都已被处理，所以在TLS握手完成之前，服务器无法为1-RTT数据包发送确认。接收到的用1-RTT密钥保护的数据包可以被存储，并且在握手完成后解密和使用。   
 注意：TLS实现可能在握手完成之前提供所有1-RTT机密。即使QUIC实现有1-RTT密钥，在完成握手之前也不能使用这些密钥。   
-要求服务器等待客户端的完成消息会对所传递的消息产生依赖。客户端可以在发送1-RTT包时联合一个包含了“Finished”消息的**CRYPTO**帧副本的握手包，直到其中一个握手包被确认为止，从而避免潜在的线头阻塞。这使服务器能够立即处理这些数据包。   
-在接收TLS “ClientHello”之前，服务器可以接收用0-RTT密钥保护的数据包。服务器可以保留这些分组以备以后解密，以预期接收到“ClientHello”。
+要求服务器等待客户端的完成消息会对所传递的消息产生依赖。客户端可以在发送1-RTT包时联合一个包含了"Finished"消息的**CRYPTO**帧副本的握手包，直到其中一个握手包被确认为止，从而避免潜在的线头阻塞。这使服务器能够立即处理这些数据包。   
+在接收TLS "ClientHello"之前，服务器可以接收用0-RTT密钥保护的数据包。服务器可以保留这些数据包以备以后解密，以预期接收到"ClientHello"。
 
 ### 5.8 重试数据包的完整性
-重试数据包（请参阅[QUIC-TRANSPORT]的“重试数据包”部分）带有一个“Retry Integrity Tag”标记，该标记提供两个属性：允许丢弃被网络意外损坏的数据包，并削弱了非路径攻击者发送有效重试数据包的能力。    
-“Retry Integrity Tag”标记是一个128位字段，计算为AEAD_AES_128_GCM[AEAD]的输出，并与以下输入一起使用：
+重试数据包（请参阅[QUIC-TRANSPORT]的"重试数据包"部分）带有一个"Retry Integrity Tag"标记，该标记提供两个属性：允许丢弃被网络意外损坏的数据包，并削弱了非路径攻击者发送有效重试数据包的能力。    
+"Retry Integrity Tag"标记是一个128位字段，计算为AEAD_AES_128_GCM[AEAD]的输出，并与以下输入一起使用：
 + 128位的密钥K，等于0x4d32ecdb2a213c841e4043df27d4430。
 + 96位的nonce N，等于0x4d1611d05513a552c587d575。
 + 明文P，空的。
-+ 关联数据A是重试伪包的内容，如图8所示：密钥和nonce是通过调用HKDF Expand Label得到的值，使用0x656e61e336ae9417f7f0edd8d78d461e2aa7084aba7a14c1e9f726d55709169a作为机密，标签为“quic key”和“quic iv”（第5.1节）。
++ 关联数据A是重试伪包的内容，如图8所示：密钥和nonce是通过调用HKDF Expand Label得到的值，使用0x656e61e336ae9417f7f0edd8d78d461e2aa7084aba7a14c1e9f726d55709169a作为机密，标签为"quic key"和"quic iv"（第5.1节）。
 ```
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -481,5 +481,234 @@ mask = ChaCha20(hp_key, counter, nonce, {0,0,0,0,0})
 +   Original Destination Connection ID:  包含此重试响应的初始数据包中的目标连接ID的值。此字段的长度以ODCID Len表示。此字段的存在减少了非路径攻击者注入重试数据包的可能。
 
 ## 6 密钥更新
+一旦握手被确认（见第4.1.2节），端Endpoint就可以启动密钥更新。   
+"The Key Phase"位指示使用哪些包保护密钥来保护该包。对于第一组1-RTT数据包，"The Key Phase"位最初设置为0，并切换以向每个后续密钥更新发送信号。   
+"The Key Phase"位允许接收者检测密钥的变化，而不需要接收触发该变化的第一个包。通知"The Key Phase"变更的Endpoint更新密钥并解密包含更改值的包。   
+此机制将替换TLS "KeyUpdate"消息。Endpoint**不要**发送TLS "KeyUpdate"消息。   
+Endpoint必须将接收到的TLS "KeyUpdate"消息视为0x10a类型的连接错误，相当于"unexpected_message"发出致命的TLS fatal警报（参见第4.9节）。   
+图9显示了一个密钥更新过程，其中使用的初始密钥集（用@M标识）被更新的密钥（标识为@N）替换。键相位的值用括号[]表示。   
+```
+   Initiating Peer                     Responding Peer
+   @M [0] QUIC Packets
+   ... Update to @N
+   @N [1] QUIC Packets
+                        -------->
+                                     Update to @N ...
+                                  QUIC Packets [1] @N
+                        <--------
+                                  QUIC Packets [1] @N
+                                containing ACK
+                        <--------
+   ... Key Update Permitted
+   @N [1] QUIC Packets
+       containing ACK for @N packets
+                        -------->
+                              Key Update Permitted ...
+                   图 9: 密钥更新
+```
 
+### 6.1 启动密钥更新
+端点为包保护维护单独的读写密钥。端点通过更新其数据包保护写入密钥以启动密钥更新，并使用它来保护新数据包来。端点根据[TLS13]第7.2节中所述的现有写入密钥创建新的写入密钥。它使用TLS提供的带有"quic ku"标签的KDF函数。相应的密钥和IV根据第5.1节中定义的密钥创建。包头保护密钥并没有更新。   
+例如，要用TLS 1.3更新写密钥，HKDF Expand Label用作：
+```
+secret_<n+1> = HKDF-Expand-Label(secret_<n>, "quic ku",
+                            "", Hash.length)
+```
+端点切"Key Phase"位的值，并使用更新后的密钥和IV来保护所有后续数据包。   
+在确认握手之前，端点不得启动密钥更新（第4.1.2节）。端点不能在启动后续密钥的更新，除非它已收到由当前"Key Phase"的密钥保护发送的包的确认。这样可以确保在启动另一个密钥更新之前，密钥对两个对端都可用。这可以通过跟踪每个"Key Phase"发送的最低数据包号和1-RTT空间中的最高确认数据包号来实现：一旦后者大于或等于前者，就可以启动另一个密钥更新。   
+注意：除1-RTT数据包外，其他数据包的密钥永远不会更新；它们的密钥仅从TLS握手状态派生。   
+启动密钥更新的端点还更新它用于接收数据包的密钥。更新后，需要这些密钥来处理对等方发送的数据包。   
+端点应该保留旧密钥，以便可以处理在接收密钥更新之前由其对端发送的数据包。过早丢弃旧密钥会导致延迟的数据包被丢弃。丢弃数据包将被对端解释为数据包丢失，并可能对性能产生不利影响。   
 
+### 6.2 响应密钥更新
+在当前密钥阶段接收到包的确认之后，允许对等方发起密钥更新。端点在处理密钥阶段与上次用于保护它发送的最后一个数据包的值不同的数据包时检测密钥更新。为了处理这个包，端点使用下一个包保护密钥和IV。有关生成这些键的注意事项，请参见第6.3节。   
+如果使用下一个密钥和IV成功地处理了一个数据包，则对等方已启动密钥更新。端点必须将其发送密钥更新到相应的密钥阶段，如第6.1节所述。发送密钥必须在发送用更新密钥接收的包的确认之前更新。通过确认由更新密钥保护的包中触发密钥更新的包，端点发出密钥更新完成的信号。   
+端点可以根据其正常的数据包发送行为延迟发送数据包或确认；不需要立即生成响应密钥更新的数据包。端点发送的下一个数据包将使用更新后的密钥。包含确认的下一个数据包将导致密钥更新完成。如果一个端点在发送带有更新密钥的任何包之前检测到第二次更新，其中包含对启动密钥更新的包的确认，则它指示其对等方已更新密钥两次，而无需等待确认。端点可以将连续的密钥更新视为**KEY_UPDATE_ERROR**类型的连接错误。   
+接收到由旧密钥保护的数据包中携带的确认的端点，其中任何已确认的数据包都被新密钥保护，则该端点可以将其视为**KEY_UPDATE_ERROR**类型的连接错误。这表示对等方已经接收并确认了发起密钥更新的包，但没有响应地更新密钥。   
+
+### 6.3 接收密钥生成的时间
+响应明显密钥更新的端点**不得**生成可能指示密钥阶段位无效的"side-channel"信号（见第9.3节）。当还不允许密钥更新时，端点可以使用虚拟包保护密钥来代替丢弃的密钥。使用伪密钥将不会在试图移除包保护所产生的定时信号中产生任何变化，并导致具有无效密钥相位位的所有数据包被拒绝。   
+为接收数据包创建新的数据包保护密钥的过程可能会显示密钥更新已发生。端点可以将此过程作为包处理的一部分执行，但这会创建一个定时信号，攻击者可以使用该信号来了解密钥更新的时间，从而了解某些数据包中密钥相位位的值。端点可以将下一组接收包保护密钥的创建推迟到密钥更新完成后的某个时间，最多为PTO的三倍；请参阅第6.5节。   
+一旦生成，就应该保留下一组数据包保护密钥，即使接收到的数据包随后被丢弃。包含明显的密钥更新的数据包很容易伪造，而且-虽然密钥更新过程不需要大量工作-触发此过程可能会被攻击者用于DoS。   
+因此，端点必须能够为接收数据包保留两组数据包保护密钥：当前和下一个。除了这些之外保留以前的关键点可能会提高性能，但这并不重要。   
+
+### 6.4 使用更新的密钥发送
+端点总是发送用最新密钥保护的数据包。用于包保护的密钥在切换到新的密钥后可以立即丢弃。   
+数据包编号较高的数据包必须使用与较低数据包编号的数据包相同或更新的数据包保护密钥进行保护。当较新的密钥用于数据包编号较低的数据包时，如果某个Endpoint成功地删除了旧密钥的保护，则该端点必须将其视为**KEY_UPDATE_ERROR**类型的连接错误。   
+
+### 6.5 使用不同的密钥接收
+对于在密钥更新期间接收数据包，使用旧密钥保护的数据包可能会在网络延迟时到达。保留旧的数据包保护密钥可以成功地处理这些数据包。   
+由于由下一个密钥阶段的密钥保护的数据包使用与前一个密钥阶段的密钥保护的数据包相同的密钥阶段值，因此有必要区分这两者。这可以使用数据包编号来完成。低于当前密钥阶段的任何数据包号的恢复数据包号使用先前的数据包保护密钥；高于当前密钥阶段的任何数据包号的恢复数据包号需要使用下一个数据包保护密钥。   
+一定要小心，以确保在前一个、当前和下一个数据包保护密钥之间进行选择的任何过程都不会暴露"timing side channel"，该信道可能会揭示用于移除数据包保护的密钥。更多信息见第9节。   
+或者，端点只能保留两组数据包保护密钥，在经过足够的时间以允许在网络中重新排序后，将前一组交换为下一组。在这种情况下，可以单独使用密钥相位位来选择密钥。   
+在创建下一组数据包保护密钥之前，一个端点在密钥更新后可能允许大约一段时间的探测超时（PTO；请参阅[QUIC-RECOVERY]）。这些更新后的密钥可能会取代当时的密钥。有一点需要注意的是，PTO是一个主观的度量，也就是说，一个对等点可能对RTT有不同的看法，这个时间预计足够长，以至于任何重新排序的数据包都将被对等方声明丢失，即使它们被确认并且足够短以允许随后的密钥更新。   
+端点需要考虑这样的可能性：对等方可能无法解密在保留旧密钥期间启动密钥更新的数据包。在接收到确认已接收到上一次密钥更新的确认后，Endpoint应等待PTO三次，然后再启动密钥更新。没有足够的时间可能会导致数据包被丢弃。   
+Endpoint保留旧的读密钥的时间不应超过PTO的三倍。在这段时间之后，旧的读密钥及其相应的秘密应该被丢弃。   
+
+### 6.6 密钥更新频率
+在超过数据包保护密钥的使用限制之前，必须启动密钥更新。对于本文件中提到的密码套件，[TLS13]第5.5节中的限制适用。其他密码套件必须定义使用限制才能与QUIC一起使用。   
+
+### 6.7 密钥更新错误码
+**KEY_UPDATE_ERROR**（0xE）用于通知与密钥更新相关的错误。
+
+## 7 初始消息的安全性
+初始数据包不受密钥保护，因此可能会被攻击者篡改。QUIC提供了对无法读取数据包的攻击者的保护，但不试图提供额外的保护，以防攻击者在攻击中观察和注入数据包。某些形式的篡改（例如修改TLS消息本身）是可检测的，但有些形式（如修改ack）则不可检测。   
+例如，攻击者可以注入一个包含ACK帧的包，该ACK帧使数据包看起来没有被接收，或者造成连接状态的错误印象（例如，通过修改ACK延迟）。请注意，这样的数据包可能会导致合法数据包作为重复数据被丢弃。在依赖初始数据包中未经其他方式验证的任何数据时，实现时应谨慎。   
+攻击者还可能篡改握手数据包中携带的数据，但由于这种篡改需要修改TLS握手消息，因此这种篡改将导致TLS握手失败。   
+
+## 8 TLS握手的QUIC特定附加功能
+QUIC使用TLS握手不仅仅用于协商加密参数。TLS握手提供QUIC传输参数的初始值，并允许服务器在客户端上执行返回路由检查。   
+
+### 8.1 协议协商
+QUIC要求加密握手提供经过身份验证的协议协商。TLS使用应用层协议协商（ALPN）[ALPN]来选择应用协议。除非使用另一种机制来同意应用程序协议，否则端点必须为此使用ALPN。使用ALPN时，如果应用协议未与"no_application_protocol"TLS警报协商（QUIC错误代码0x178，请参阅第4.9节），则端点必须立即关闭连接（请参阅[QUIC-TRANSPORT]中的10.3节）。虽然[ALPN]只指定服务器使用此警报，但当ALPN协商失败时，QUIC客户端还必须使用它来终止连接。   
+应用程序协议可能会限制它可以操作的QUIC版本。服务器必须选择与客户机所选QUIC版本兼容的应用程序协议。服务器必须将无法选择兼容的应用程序协议视为类型为0x178 (no_application_protocol)的连接错误。类似地，客户机必须将服务器选择的不兼容应用程序协议视为0x178类型的连接错误。   
+
+### 8.2 QUIC传输参数扩展
+QUIC传输参数在TLS扩展中携带。不同版本的QUIC可能会为协商传输配置定义不同的方法。   
+在TLS握手中包含传输参数为这些值提供完整性保护。
+```
+enum {
+    quic_transport_parameters(0xffa5), (65535)
+} ExtensionType;
+```
+"quic_transport_parameters"扩展的"extension_data"字段包含一个由正在使用的quic版本定义的值。   
+"quic_transport_parameters"扩展在"ClientHello"中进行，而"EncryptedExtensions"消息则在握手过程中进行。Endpoint必须发送"quic_transport_parameters"扩展；接收"ClientHello"或"EncryptedExtensions"消息但没有"quic_transport_parameters"扩展的Endpoint必须关闭连接，错误类型为0x16d（相当于致命的TLS missing_extensions警报，请参阅第4.9节）。   
+虽然在握手完成之前传输参数在技术上是可用的，但是在握手完成之前不能完全信任它们，并且应该尽量减少对它们的依赖。但是，对参数的任何篡改都会导致握手失败。   
+端点不能在不使用QUIC的TLS连接中发送此扩展（例如在[TLS13]中定义的TCP中使用TLS）。如果在传输不是QUIC时收到扩展，则支持此扩展的实现必须发送致命的"unsupported_extension"警报。
+
+### 8.3 删除EndOfEarlyData 消息
+TLS的"EndOfEarlyData"消息未与QUIC一起使用。QUIC不依赖于此消息来标记0-RTT数据的结束，也不表示握手键的更改。   
+客户端禁止发送 "EndOfEarlyData"消息。服务器必须将收到0-RTT数据包中的**CRYPTO**帧视为**PROTOCOL_VIOLATION**类型的连接错误。   
+因此，"EndOfEarlyData"不会出现在TLS握手记录中。
+
+## 9 安全考虑因素
+最终可能会有一些现实中的的冲突，但目前的一系列问题在正文的相关章节中得到了很好的体现。   
+千万不要认为因为它不在安全考虑部分，它不会影响安全性。本文档的大部分内容都是这样。   
+
+### 9.1 使用0-RTT重放攻击
+如[TLS13]第8节所述，使用TLS早期数据会暴露于重放攻击。在QUIC中使用0-RTT同样容易受到重放攻击。   
+端点必须实现和使用[TLS13]中描述的重放保护，但是人们认识到这些保护是不完善的。因此，需要额外考虑重放的风险。   
+QUIC不易受到重播攻击，除非通过它可能携带的应用程序协议信息。基于[QUIC-TRANSPORT]中定义的帧类型管理QUIC协议状态不易重播。QUIC帧的处理是幂等的，如果帧被重放、重新排序或丢失，则不会导致无效的连接状态。QUIC连接不会产生持续超过连接生存期的效果，QUIC连接不会产生超过连接生命周期的效果，除了由QUIC服务的应用程序协议产生的影响。   
+注意：TLS会话凭证和地址验证Token用于在连接之间传输QUIC配置信息。这些不能用于携带应用程序语义。重用这些Token的可能性意味着它们需要更强大的保护来防止重播。   
+在连接上接受0-RTT的服务器比接受不接受0-RTT的连接产生更高的成本。这包括更高的处理和计算成本。服务器在接受0-RTT时需要考虑重放的概率和所有相关的成本。   
+最终，使用0-RTT管理重播攻击风险的责任在于应用程序协议。使用QUIC的应用程序协议必须描述协议如何使用0-RTT以及用于防止重播攻击的措施。重播风险分析需要考虑所有携带应用程序语义的QUIC协议特性。   
+完全禁用0-RTT是最有效的防御重放攻击。   
+QUIC扩展必须描述重放攻击如何影响它们的操作，或者禁止它们在0-RTT中使用。应用程序协议必须禁止使用在0-RTT中携带应用程序语义的扩展，或者提供重放缓解策略。
+
+### 9.2 缓解包反射攻击
+小"ClientHello"会导致来自服务器的大量握手消息，可用于包反射攻击，以放大攻击者生成的通信量。   
+QUIC包括三种防御措施。首先，包含"ClientHello"的包必须填充到最小大小。第二，如果响应未经验证的源地址，则禁止服务器在其第一次飞行中发送超过三个UDP数据报（见[QUIC-TRANSPORT]第8.1节）。最后，由于握手包的确认是经过身份验证的，盲目攻击者无法伪造它们。总之，这些防御措施限制了放大攻击。
+
+### 9.3 包头保护分析
+[NAN]分析提供nonce隐私的认证加密算法，称为"Hide nonce"（HN）转换。本文档中的一般包头保护结构是其中一种算法（HN1）。包头保护使用包保护AEAD的输出导出“sample”，然后使用伪随机函数（PRF）加密包头字段，如下所示：
+```
+protected_field = field XOR PRF(hp_key, sample)
+```
+本文档中的报头保护变体使用伪随机排列（PRP）代替通用PRF。然而，由于所有PRP也是PRF[IMC]，这些变体不会偏离HN1结构。   
+由于“hp_key”不同于包保护密钥，因此，报头保护实现了[NAN]中定义的AE2安全性，从而保证了受保护的包报头“field”的隐私性。未来基于这种结构的报头保护变体必须使用PRF来确保同等的安全保证。   
+多次使用同一密钥和密文样本会有损害报头保护的风险。使用相同的密钥和密文示例保护两个不同的标头会显示受保护字段的异或。假设AEAD充当PRF，如果采样L位，则两个密文样本相同的概率接近2^（-L/2），即生日界限。对于本文中描述的算法，这个概率是2^64中的一个。   
+注意：在某些情况下，可能会使用比数据包保护算法要求的完整大小短的输入。   
+为了防止攻击者修改数据包报头，使用数据包保护对报头进行传递性身份验证；整个数据包报头是经过身份验证的附加数据的一部分。伪造或修改的受保护字段只有在删除包保护后才能检测到。   
+
+### 9.4 包头保护Timing Side-Channels
+攻击者可以猜测数据包编号或密钥阶段位的值，并通过"Timing Side-Channels"让端点确认猜测。类似地，对分组号长度的猜测可以试验和公开。如果一个包的接收者丢弃了具有重复包号的包，而不尝试解除包保护，则它们可以通过"Timing Side-Channels"揭示包号与接收到的包相匹配。为了使认证不受旁"Side-Channels"的影响，必须同时应用报头保护移除、分组号恢复和分组保护移除的整个过程，而不需要定时和其他"Side-Channels"。   
+对于分组的发送，分组有效载荷和分组号的构造和保护必须不受可能暴露分组号或其编码大小的"Side-Channels"的影响。   
+在密钥更新期间，生成新密钥所花费的时间可以通过"Timing Side-Channels"显示密钥更新已经发生。或者，当攻击者注入数据包时，此"Side-Channels"可能会显示注入包的密钥阶段位的值。接收到密钥更新后，端点应生成并保存下一组接收包保护密钥，如第6.3节所述。通过在接收到密钥更新之前生成新密钥，接收包将不会产生泄漏密钥阶段位值的定时信号。   
+这取决于在包处理期间不进行密钥生成，并且可能要求端点维护三组分组保护密钥以进行接收：用于前一密钥阶段、当前密钥阶段和下一密钥阶段。端点可以选择推迟下一个接收包保护密钥的生成，直到它们丢弃旧密钥，这样在任何时间点只需要保留两组接收密钥。   
+
+### 9.5 密钥多样性
+在使用TLS时，使用TLS的中心密钥调度。由于TLS握手消息被集成到加密计算中，包含QUIC传输参数扩展可确保握手和1-RTT密钥与通过TCP运行TLS的服务器产生的密钥不同。为了避免跨协议密钥同步的可能性，还提供了额外的措施来改进密钥分离。    
+QUIC包保护密钥和IVs是使用与TLS中的等效密钥不同的标签来派生的。   
+为了保持这种分离，新版本的QUIC应该为包保护密钥和IV以及头保护密钥定义新的密钥派生标签。这个版本的QUIC使用字符串“QUIC”。其他版本可以使用特定于版本的标签来代替该字符串。   
+初始加密使用特定于协商的QUIC版本的密钥。新的QUIC版本应该定义一个用于计算初始机密的新salt值。    
+
+## 10 IANA考虑
+本文档不创建任何新的IANA注册表，但它在以下注册表中注册值：
++ TLS ExtensionType Values Registry[TLS-REGISTRIES]-IANA将注册第8.2节中找到的“quic_transport_parameters”扩展。建议列应标记为“是”。TLS 1.3列包括CH和EE。  
++ QUIC传输错误代码注册表[QUIC-Transport]-IANA将注册**KEY_UPDATE_ERROR**（0xE），如第6.7节所述。
+
+## 11 引用
+
+### 11.1 规范性引用文件
+```
+[AEAD]   McGrew, D., "An Interface and Algorithms for Authenticated
+         Encryption", RFC 5116, DOI 10.17487/RFC5116, January 2008,
+         <https://www.rfc-editor.org/info/rfc5116>.
+[AES]    "Advanced encryption standard (AES)",
+         DOI 10.6028/nist.fips.197, National Institute of Standards
+         and Technology report, November 2001,
+         <https://doi.org/10.6028/nist.fips.197>.
+[ALPN]   Friedl, S., Popov, A., Langley, A., and E. Stephan,
+         "Transport Layer Security (TLS) Application-Layer Protocol
+         Negotiation Extension", RFC 7301, DOI 10.17487/RFC7301,
+         July 2014, <https://www.rfc-editor.org/info/rfc7301>.
+[CHACHA] Nir, Y. and A. Langley, "ChaCha20 and Poly1305 for IETF
+         Protocols", RFC 8439, DOI 10.17487/RFC8439, June 2018,
+         <https://www.rfc-editor.org/info/rfc8439>.
+[QUIC-RECOVERY]
+         Iyengar, J., Ed. and I. Swett, Ed., "QUIC Loss Detection
+         and Congestion Control", Work in Progress, Internet-Draft,
+         draft-ietf-quic-recovery-27, 21 February 2020,
+         <https://tools.ietf.org/html/draft-ietf-quic-recovery-27>.
+[QUIC-TRANSPORT]
+         Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
+         Multiplexed and Secure Transport", Work in Progress,
+         Internet-Draft, draft-ietf-quic-transport-27, 21 February
+         2020, <https://tools.ietf.org/html/draft-ietf-quic-
+         transport-27>.
+[RFC2119] 
+         Bradner, S., "Key words for use in RFCs to Indicate
+         Requirement Levels", BCP 14, RFC 2119,
+         DOI 10.17487/RFC2119, March 1997,
+         <https://www.rfc-editor.org/info/rfc2119>.
+[RFC8174]Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+         2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+         May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+[SHA]    Dang, Q., "Secure Hash Standard",
+         DOI 10.6028/nist.fips.180-4, National Institute of
+         Standards and Technology report, July 2015,
+         <https://doi.org/10.6028/nist.fips.180-4>.
+[TLS-REGISTRIES]
+         Salowey, J. and S. Turner, "IANA Registry Updates for TLS
+         and DTLS", RFC 8447, DOI 10.17487/RFC8447, August 2018,
+         <https://www.rfc-editor.org/info/rfc8447>.
+[TLS13]  Rescorla, E., "The Transport Layer Security (TLS) Protocol
+         Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+         <https://www.rfc-editor.org/info/rfc8446>.
+```
+
+### 11.2 资料性引用
+```
+[AEBounds] 
+         Luykx, A. and K. Paterson, "Limits on Authenticated
+         Encryption Use in TLS", 8 March 2016,
+         <http://www.isg.rhul.ac.uk/~kp/TLS-AEbounds.pdf>.
+[HTTP2-TLS13]
+         Benjamin, D., "Using TLS 1.3 with HTTP/2", Work in
+         Progress, Internet-Draft, draft-ietf-httpbis-
+         http2-tls13-03, 17 October 2019, <http://www.ietf.org/
+         internet-drafts/draft-ietf-httpbis-http2-tls13-03.txt>.
+[IMC]    Katz, J. and Y. Lindell, "Introduction to Modern
+         Cryptography, Second Edition", ISBN 978-1466570269, 6
+         November 2014.
+[NAN]    Bellare, M., Ng, R., and B. Tackmann, "Nonces Are Noticed:
+         AEAD Revisited", DOI 10.1007/978-3-030-26948-7_9, Advances
+         in Cryptology - CRYPTO 2019 pp. 235-265, 2019,
+         <https://doi.org/10.1007/978-3-030-26948-7_9>.
+[QUIC-HTTP]
+         Bishop, M., Ed., "Hypertext Transfer Protocol Version 3
+         (HTTP/3)", Work in Progress, Internet-Draft, draft-ietf-
+         quic-http-27, 21 February 2020,
+         <https://tools.ietf.org/html/draft-ietf-quic-http-27>.
+[RFC2818] Rescorla, E., "HTTP Over TLS", RFC 2818,
+         DOI 10.17487/RFC2818, May 2000,
+         <https://www.rfc-editor.org/info/rfc2818>.
+[RFC5280] Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
+         Housley, R., and W. Polk, "Internet X.509 Public Key
+         Infrastructure Certificate and Certificate Revocation List
+         (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
+         <https://www.rfc-editor.org/info/rfc5280>.
+```
+
+## 附录
+。。。
