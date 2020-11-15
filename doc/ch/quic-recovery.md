@@ -148,4 +148,205 @@ PTO周期是发送方等待已发送数据包确认的时间量。该时间段�
 如果设置了时间阈值(第5.1.2节)丢失检测计时器，则不得设置探针计时器。预计时间阈值丢失检测计时器将比PTO早到期，并且不太可能错误地重新传输数据。   
 
 ### 5.3 握手和新的传输路径
+新连接或新路径的初始探测超时应设置为初始RTT的两倍。通过同一网络恢复的连接应该使用前一个连接的最终平滑RTT值作为恢复连接的初始RTT。如果之前没有可用的RTT，初始RTT应设置为500ms，导致1秒的初始超时，如[RFC6298]中所建议的那样。   
+一个连接可以使用发送一个**PATH_CHALLENGE**和接收一个**PATH_RESPONSE**之间的延迟来设置新路径的初始RTT（见附录A.2中的kInitialRtt），但该延迟不应被视为RTT示例。   
+在服务器验证了路径上的客户端地址之前，它可以发送的数据量被限制为接收数据量的三倍，如[QUIC-TRANSPORT]第8.1节所述。如果无法发送数据，则在从客户端收到数据报之前，不得启用PTO警报。   
+由于服务器可能会被阻塞，直到从客户端接收到更多的数据包，因此客户端有责任发送数据包以解除对服务器的阻塞，直到确定服务器已完成地址验证（见[QUIC-TRANSPORT]第8节）。也就是说，如果客户端没有收到对其握手或1-RTT包之一的确认，则客户端必须设置探测计时器。   
+在握手完成之前，当生成的RTT样本很少甚至没有时，可能是由于客户端的RTT估计不正确而导致探测计时器过期的。为了允许客户机改进其RTT估计，它发送的新数据包必须是ack引发包。如果握手密钥对客户端可用，它必须发送一个握手包，否则它必须以至少1200字节的UDP数据报发送初始数据包。    
+初始数据包和握手数据包永远不会被确认，但是当初始密钥和握手密钥被丢弃时，它们会从正在运行的字节中删除。
 
+#### 5.3.1 发送探测包
+当PTO计时器过期时，发送方必须在包号空间中发送至少一个ack引发包作为探测，除非没有可供发送的数据。一个端点可以发送最多两个包含ack诱导包的全尺寸数据包，以避免由于单个丢失的数据包或从多个包号空间传输数据而导致的连续PTO的过期。   
+除了在定时器过期的包号空间中发送数据外，发送方还应发送ack，确认从其他包号空间接收到的ack引发包，如有可能，合并包。实际上就是ack的捎带发送。    
+当PTO计时器过期，并且存在新的或以前发送的未确认数据时，必须发送该数据。    
+发送方可能没有新的或以前发送的数据要发送。作为一个例子，考虑以下事件序列：在**STREAM**帧中发送新的应用程序数据，被视为丢失，然后在新数据包中重新传输，然后又被确认原始传输的数据。当没有要发送的数据时，发送方应在单个数据包中发送**PING**或其他ack诱导帧，并重新启用PTO计时器。   
+替代地，发送方可以将任何仍在飞行中的包标记为丢失，而不是发送ack诱导包。这样做可以避免发送额外的数据包，但会增加声明丢失的风险，从而导致拥塞控制器不必要地降低速率。    
+连续的PTO周期呈指数级增长，因此，随着数据包在网络中的不断丢弃，连接恢复延迟呈指数级增加。在PTO过期时发送两个数据包可提高对数据包丢失的恢复能力，从而降低连续PTO事件的概率。   
+在PTO上发送的探测包必须是ack引发包。如果可能的话，探测包应该携带新的数据。当新数据不可用时，当流控制不允许发送新数据时，或者为了偶然地减少丢失恢复延迟，探测包可以携带重传的未确认数据。实现可以使用替代策略来确定探测包的内容，包括基于应用程序的优先级发送新的或重新传输的数据。    
+当PTO计时器多次过期且无法发送新数据时，实现必须在每次发送相同的有效负载还是发送不同的有效负载之间进行选择。发送相同的有效载荷可能更简单，并确保优先级最高的帧首先到达。每次发送不同的有效负载可以减少错误重新传输的机会。   
+
+#### 5.3.2 损失检测
+当接收到ACK帧新确认一个或多个包时，就可以确认已经发送的数据包是否丢失。   
+PTO计时器过期事件不指示数据包丢失，并且不得导致先前未确认的数据包被标记为丢失。当接收到新确认包的确认时，丢失检测按照包和时间阈值机制进行；见第5.1节。
+
+### 5.4 处理重试数据包
+重试数据包会导致客户端发送另一个初始数据包，从而有效地重新启动连接过程。重试数据包表示已收到初始数据包，但未进行处理。不能将重试数据包视为确认，因为它不表示已处理数据包或指定数据包编号。    
+接收到重试数据包的客户端将重置拥塞控制和丢失恢复状态，包括重置任何挂起的计时器。其他连接状态，特别是加密握手消息，被保留；参见[QUIC-TRANSPORT]第17.2.5节。   
+客户端可以计算对服务器的RTT估计，作为从发送第一个初始值到接收到重试或版本协商包的时间段。客户端可以使用此值代替初始RTT估计的默认值。
+
+### 5.5 丢弃密钥和包状态
+当数据包保护密钥被丢弃时（见[QUIC-TLS]第4.10节），用这些密钥发送的所有数据包都不能再被确认，因为它们的确认不能再被处理。发送方必须丢弃与这些数据包相关联的所有恢复状态，并且必须将它们从正在传输的字节数中删除。端点一旦开始交换握手包，就停止发送和接收初始包（见[QUIC-TRANSPORT]的17.2.2.1节）。此时，所有正在运行的初始数据包的恢复状态都将被丢弃。   
+在RTT-0状态下，所有RTT-0恢复被丢弃。   
+如果服务器接受0-RTT，但不缓冲在初始数据包之前到达的0-RTT数据包，则早期的0-RTT数据包将被声明为丢失，但这种情况并不常见。   
+在用密钥加密的包被确认或声明丢失后，密钥将被丢弃。然而，一旦握手密钥可用，初始秘密可能会很快被销毁（见[QUIC-TLS]第4.10.1节）。
+
+## 6 拥塞控制
+本文档为QUIC[RFC6582]指定了一个Reno拥塞控制器。   
+QUIC为拥塞控制提供的信号是通用的，并且设计为支持不同的算法。端点可以单方面选择不同的算法来使用，比如Cubic[RFC8312]。   
+如果端点使用的控制器与本文件中指定的控制器不同，则所选控制器必须符合[RFC8085]第3.1节中规定的拥塞控制指南。   
+本文档中的算法以字节为单位指定并使用控制器的拥塞窗口。   
+如果某个端点将导致"bytes_in_flight"（见附录B.2）大于拥塞窗口，则不得发送数据包，除非该数据包在PTO计时器过期时发送（见第5.2节）。   
+
+### 6.1 显式拥塞通知
+如果一条路径已经被验证支持ECN[RFC3168][RFC8311]，QUIC会将IP报头中的"Congestion Experienced"（CE）标识位作为为拥塞信号。本文档指定了当端点的对端接收到"Congestion Experienced"的标识位的数据包时的响应。   
+
+### 6.2 慢启动
+QUIC在慢速启动时开始每个连接，并在ECN-CE计数器丢失或增加时退出慢启动。只要拥塞窗口小于ssthresh，QUIC就会重新进入慢速启动，这只会在声明持续拥塞之后发生。而在慢启动中，QUIC会在处理每个ACK确认时，通过确认的字节数来增加拥塞窗口的大小。
+
+### 6.3 拥塞避免
+慢启动退出后进入拥塞避免阶段。ewReno中的拥塞避免使用了一种加性增加乘性减少（AIMD）方法，该方法中，每个ACK确认都将使拥塞窗口增加一个最大包大小。当检测到丢失时，NewReno将拥塞窗口减半，并将慢启动阈值设置为新的拥塞窗口。   
+
+### 6.4 恢复期
+当检测到包的丢失或ECN-CE标记时，进入恢复期。当在恢复期间发送的包被确认时，恢复周期结束。这与TCP的恢复定义稍有不同，后者在确认开始恢复的丢失数据包时结束。   
+恢复期将拥塞窗口减少限制为每往返一次。在恢复期间，无论ECN-CE计数器出现新的损失或增加，拥塞窗口都保持不变。
+
+### 6.5 忽略不可加密数据包的丢失
+在握手过程中，当数据包到达时，某些数据包保护密钥可能不可用。特别是，握手和0-RTT包在初始包到达之前不能被处理，而1-RTT包在握手完成之前不能被处理。端点可以忽略握手、0-RTT和1-RTT包的丢失，这些包可能在对端拥有包保护密钥来处理这些包之前到达。
+
+### 6.6 探测超时
+探测包不能被拥塞控制器阻止。然而，发送方必须将这些数据包视为额外在飞(在传输中)，因为这些数据包在不造成数据包丢失的情况下增加了网络负载。请注意，发送探测包可能会导致发送方在传输中的字节超过拥塞窗口，直到接收到确认数据包丢失或传递的确认为止。    
+
+### 6.7 持续拥塞
+当接收到足够长的时间内发送的所有正在传输的包的丢失的ACK帧时，网络被认为正在经历持续的拥塞。通常，这可以通过连续PTO来建立，但是由于在发送新的ack引发包时PTO计时器被重置，因此必须使用显式的持续时间来解释PTO没有发生或被严重延迟的情况。持续时间计算如下：
+```
+(smoothed_rtt + 4 * rttvar + max_ack_delay) * kPersistentCongestionThreshold
+```
+例如，假设：
+```
+smoothed_rtt = 1 rttvar = 0 max_ack_delay = 0
+kPersistentCongestionThreshold = 3
+```
+如果在time=0时发送ack引发包，则以下场景将说明持续拥塞：
+```
++-----+------------------------+
+| t=0 | Send Pkt #1 (App Data) |
++=====+========================+
+| t=1 | Send Pkt #2 (PTO 1)    |
++-----+------------------------+
+| t=3 | Send Pkt #3 (PTO 2)    |
++-----+------------------------+
+| t=7 | Send Pkt #4 (PTO 3)    |
++-----+------------------------+
+| t=8 | Recv ACK of Pkt #4     |
++-----+------------------------+
+           表 1
+```
+当在t＝8处接收到分组4的确认时，前三个分组被确定为丢失。拥塞周期计算为最早和最新丢失数据包之间的时间：(3 - 0) = 3。持续性拥塞的持续时间等于（1*kPersistandClosessionThreshold）=3。因为达到了阈值，而且最老和最新的包之间没有任何包被确认，所以网络被认为经历了持续的拥塞。   
+当建立持续拥塞时，发送方的拥塞窗口必须减少到最小拥塞窗口（kMinimumWindow）。这种在持续拥塞时关闭拥塞窗口的响应在功能上类似于TCP[RFC5681]中在尾部丢失探测（TLP）[RACK]之后发送方对重传超时（RTO）的响应。   
+
+### 6.8 Pacing 发送速率
+本文档没有指定一个pacer，但是建议发送方根据拥塞控制器的输入来调整所有正在传输的包的发送速度。例如，当与基于窗口的控制器一起使用时，pacer可以将拥塞窗口分布在平滑的RTT上，而pacer可能使用基于速率的控制器的速率估计。   
+一个实现应该注意设计它的拥塞控制器，以便与pacer一起工作。例如，pacer可以包装拥塞控制器并控制拥塞窗口的可用性，或者pacer可以对拥塞控制器传递给它的数据包进行配速。及时发送ACK帧对于有效地恢复丢失非常重要。因此，应对包含其帧的ACK分组进行速率调整，以避免其传送。   
+将多个数据包发送到网络中而不在它们之间有任何延迟，这会导致数据包突发，从而导致短期的拥塞和丢失。
+实现必须使用Pacing或将这种突发限制在初始拥塞窗口内，建议最小为10*max_datagram_size和max（2*max_datagram_size，14720）），其中max_datagram_size是连接数据报的当前最大大小，不包括UDP或IP开销。   
+作为众所周知的、公开可用的flow pacer实现的示例，实现者可以参考Linux（3.11以后的版本）中的公平队列数据包调度器（fq qdisc）。   
+
+### 6.9 拥塞窗口利用不足
+当传输中的字节小于拥塞窗口且发送不受速度限制时，拥塞窗口利用率不足。当出现这种情况时，无论是慢速启动还是避免拥塞，都不应增加拥塞窗口。这可能是由于应用程序数据或流控制不足造成的。  
+发送方可以使用[RFC7661]第4.3节中描述的pipeACK方法来确定是否充分利用了拥塞窗口。   
+对数据包进行速度调整的发送方（见第6.8节）可能会延迟发送数据包，并且由于这种延迟而不能充分利用拥塞窗口。如果发送方可以充分利用拥塞窗口而不需要进行调步延迟，那么它不应该认为自己是应用程序受限的。   
+发送方可以实现替代机制，以在使用不足的时段之后更新其拥塞窗口，例如在[RFC7661]中为TCP提议的那些机制。
+
+## 7 安全考虑因素
+
+### 7.1 拥挤信号
+拥塞控制从根本上涉及到对来自未经验证的实体的信号（包括丢失和ECN码位）的消耗。路径攻击者可以伪造或更改这些信号。攻击者可以通过丢弃数据包使端点降低其发送速率，或通过更改ECN码位来更改发送速率。   
+
+### 7.2 交通分析
+只携带ACK帧的包可以通过观察包大小来试探性地识别。确认模式可能会暴露有关链路特性或应用程序行为的信息。端点可以使用**PADDING**帧或将确认与其他帧绑定，以减少泄漏的信息。   
+
+### 7.3 误报ECN标记
+接收方可以误报ECN标记来改变发送方的拥塞响应。抑制ECN-CE标记的报告可能会导致发送方增加其发送速率。这种增加可能会导致拥塞和丢包。   
+发送方可以尝试通过标记他们用ECN-CE发送的偶发包来检测报告的抑制。如果使用ECN-CE发送的数据包在被确认时没有被报告为已被CE标记，则发送方应禁用该路径的ECN。   
+报告额外的ECN-CE标记将导致发送方降低其发送速率，这在效果上类似于广告减少的连接流控制限制，因此这样做没有任何好处。   
+端点选择它们使用的拥塞控制器。虽然拥塞控制器通常将ECN-CE标记的报告视为等同于丢失[RFC8311]，但每个控制器的准确响应可能不同。因此，无法正确响应有关ECN标记的信息是很难检测到的。
+
+## 8 IANA考虑
+无
+
+## 9 引用
+
+### 9.1 规范性引用文件
+[QUIC-TLS] Thomson, M., Ed. and S. Turner, Ed., "Using TLS to Secure
+           QUIC", Work in Progress, Internet-Draft, draft-ietf-quic-
+           tls-27, 9 March 2020,
+           <https://tools.ietf.org/html/draft-ietf-quic-tls-27>.
+[QUIC-TRANSPORT]
+           Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
+           Multiplexed and Secure Transport", Work in Progress,
+           Internet-Draft, draft-ietf-quic-transport-27, 9 March
+           2020, <https://tools.ietf.org/html/draft-ietf-quic-
+           transport-27>.
+[RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+           Requirement Levels", BCP 14, RFC 2119,
+           DOI 10.17487/RFC2119, March 1997,
+           <https://www.rfc-editor.org/info/rfc2119>.
+[RFC8085]  Eggert, L., Fairhurst, G., and G. Shepherd, "UDP Usage
+           Guidelines", BCP 145, RFC 8085, DOI 10.17487/RFC8085,
+           March 2017, <https://www.rfc-editor.org/info/rfc8085>.
+[RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+           2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+           May 2017, <https://www.rfc-editor.org/info/rfc8174>. 
+
+### 9.2 资料性引用
+[FACK]     Mathis, M. and J. Mahdavi, "Forward Acknowledgement:
+           Refining TCP Congestion Control", ACM SIGCOMM , August
+           1996.
+[RACK]     Cheng, Y., Cardwell, N., Dukkipati, N., and P. Jha, "RACK:
+           a time-based fast loss detection algorithm for TCP", Work
+           in Progress, Internet-Draft, draft-ietf-tcpm-rack-07, 17
+           January 2020, <http://www.ietf.org/internet-drafts/draft-
+           ietf-tcpm-rack-07.txt>.
+[RFC3168]  Ramakrishnan, K., Floyd, S., and D. Black, "The Addition
+           of Explicit Congestion Notification (ECN) to IP",
+           RFC 3168, DOI 10.17487/RFC3168, September 2001,
+           <https://www.rfc-editor.org/info/rfc3168>.
+[RFC4653]  Bhandarkar, S., Reddy, A. L. N., Allman, M., and E.
+           Blanton, "Improving the Robustness of TCP to Non-
+           Congestion Events", RFC 4653, DOI 10.17487/RFC4653, August
+           2006, <https://www.rfc-editor.org/info/rfc4653>.
+[RFC5681]  Allman, M., Paxson, V., and E. Blanton, "TCP Congestion
+           Control", RFC 5681, DOI 10.17487/RFC5681, September 2009,
+           <https://www.rfc-editor.org/info/rfc5681>.
+[RFC5682]  Sarolahti, P., Kojo, M., Yamamoto, K., and M. Hata,
+           "Forward RTO-Recovery (F-RTO): An Algorithm for Detecting
+           Spurious Retransmission Timeouts with TCP", RFC 5682,
+           DOI 10.17487/RFC5682, September 2009,
+           <https://www.rfc-editor.org/info/rfc5682>.
+[RFC5827]  Allman, M., Avrachenkov, K., Ayesta, U., Blanton, J., and
+           P. Hurtig, "Early Retransmit for TCP and Stream Control
+           Transmission Protocol (SCTP)", RFC 5827,
+           DOI 10.17487/RFC5827, May 2010,
+           <https://www.rfc-editor.org/info/rfc5827>.
+[RFC6298]  Paxson, V., Allman, M., Chu, J., and M. Sargent,
+           "Computing TCP’s Retransmission Timer", RFC 6298,
+           DOI 10.17487/RFC6298, June 2011,
+           <https://www.rfc-editor.org/info/rfc6298>.
+[RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
+           NewReno Modification to TCP’s Fast Recovery Algorithm",
+           RFC 6582, DOI 10.17487/RFC6582, April 2012,
+           <https://www.rfc-editor.org/info/rfc6582>.
+[RFC6675]  Blanton, E., Allman, M., Wang, L., Jarvinen, I., Kojo, M.,
+           and Y. Nishida, "A Conservative Loss Recovery Algorithm
+           Based on Selective Acknowledgment (SACK) for TCP",
+           RFC 6675, DOI 10.17487/RFC6675, August 2012,
+           <https://www.rfc-editor.org/info/rfc6675>.
+[RFC6928]  Chu, J., Dukkipati, N., Cheng, Y., and M. Mathis,
+           "Increasing TCP’s Initial Window", RFC 6928,
+           DOI 10.17487/RFC6928, April 2013,
+           <https://www.rfc-editor.org/info/rfc6928>.
+[RFC7661]  Fairhurst, G., Sathiaseelan, A., and R. Secchi, "Updating
+           TCP to Support Rate-Limited Traffic", RFC 7661,
+           DOI 10.17487/RFC7661, October 2015,
+           <https://www.rfc-editor.org/info/rfc7661>.
+[RFC8311]  Black, D., "Relaxing Restrictions on Explicit Congestion
+           Notification (ECN) Experimentation", RFC 8311,
+           DOI 10.17487/RFC8311, January 2018,
+           <https://www.rfc-editor.org/info/rfc8311>.
+[RFC8312]  Rhee, I., Xu, L., Ha, S., Zimmermann, A., Eggert, L., and
+           R. Scheffenegger, "CUBIC for Fast Long-Distance Networks",
+           RFC 8312, DOI 10.17487/RFC8312, February 2018,
+           <https://www.rfc-editor.org/info/rfc8312>.
+
+## 附录
+。。。
